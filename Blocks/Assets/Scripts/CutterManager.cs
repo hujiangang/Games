@@ -2,6 +2,9 @@ using UnityEngine;
 using System.Collections.Generic;
 
 public class CutterManager : MonoBehaviour {
+
+    public static int cutterLength = 2;
+
     public Material pieceMaterial;
     public LineRenderer previewLine;
     
@@ -12,8 +15,8 @@ public class CutterManager : MonoBehaviour {
     void Start() {
         // 1. 创建初始正方形
         List<Vector2> initPoints = new List<Vector2> { 
-            new Vector2(-3, 3), new Vector2(3, 3), 
-            new Vector2(3, -3), new Vector2(-3, -3) 
+            new Vector2(-cutterLength, cutterLength), new Vector2(cutterLength, cutterLength), 
+            new Vector2(cutterLength, -cutterLength), new Vector2(-cutterLength, -cutterLength) 
         };
         
         PuzzlePiece firstPiece = CreatePiece(initPoints);
@@ -104,7 +107,7 @@ public class CutterManager : MonoBehaviour {
         return a1 + u * (a2 - a1);
     }
 
-    PuzzlePiece CreatePiece(List<Vector2> pts) {
+    public PuzzlePiece CreatePiece(List<Vector2> pts) {
         GameObject go = new GameObject("Piece");
         PuzzlePiece pp = go.AddComponent<PuzzlePiece>();
         pp.Init(pts, pieceMaterial);
