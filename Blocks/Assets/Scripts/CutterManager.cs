@@ -1,96 +1,113 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-/// <summary>
-/// 切割管理器.
-/// </summary>
-public class CutterManager : MonoBehaviour
-{
+public class CutterManager : MonoBehaviour {
     public Material pieceMaterial;
     public LineRenderer previewLine;
+    
     private Vector2 startPos;
-    private List<PuzzlePiece> activePieces = new List<PuzzlePiece>();
+    // 必须公开或在面板查看，确保列表里有东西
+    public List<PuzzlePiece> activePieces = new List<PuzzlePiece>();
 
-    void Start()
-    {
-        // 初始创建一个正方形
-        GameObject go = new GameObject("InitialSquare");
-        PuzzlePiece p = go.AddComponent<PuzzlePiece>();
-        p.Init(new List<Vector2> { new Vector2(-3, 3), new Vector2(3, 3), new Vector2(3, -3), new Vector2(-3, -3) }, pieceMaterial);
-        activePieces.Add(p);
+    void Start() {
+        // 1. 创建初始正方形
+        List<Vector2> initPoints = new List<Vector2> { 
+            new Vector2(-3, 3), new Vector2(3, 3), 
+            new Vector2(3, -3), new Vector2(-3, -3) 
+        };
+        
+        PuzzlePiece firstPiece = CreatePiece(initPoints);
+        activePieces.Add(firstPiece); // 这一行之前漏掉了！
+        Debug.Log("初始化完成，当前块数: " + activePieces.Count);
     }
 
-    void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            startPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    void Update() {
+        // 获取鼠标位置，注意 Z 轴要设为相机的距离
+        Vector3 mousePos = Input.mousePosition;
+        mousePos.z = Mathf.Abs(Camera.main.transform.position.z);
+        Vector2 worldMouse = Camera.main.ScreenToWorldPoint(mousePos);
+
+        if (Input.GetMouseButtonDown(0)) {
+            startPos = worldMouse;
             previewLine.gameObject.SetActive(true);
-        }
-
-        if (Input.GetMouseButton(0))
-        {
-            Vector2 currentPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             previewLine.SetPosition(0, startPos);
-            previewLine.SetPosition(1, currentPos);
         }
 
-        if (Input.GetMouseButtonUp(0))
-        {
-            Vector2 endPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            DoSlice(startPos, endPos);
+        if (Input.GetMouseButton(0)) {
+            previewLine.SetPosition(1, worldMouse);
+        }
+
+        if (Input.GetMouseButtonUp(0)) {
             previewLine.gameObject.SetActive(false);
+            if (Vector2.Distance(startPos, worldMouse) > 0.1f) {
+                ExecuteSlice(startPos, worldMouse);
+            }
         }
     }
 
-    void DoSlice(Vector2 lineStart, Vector2 lineEnd)
-    {
-        List<PuzzlePiece> toAdd = new List<PuzzlePiece>();
-        List<PuzzlePiece> toRemove = new List<PuzzlePiece>();
+    void ExecuteSlice(Vector2 lineStart, Vector2 lineEnd) {
+        List<PuzzlePiece> newGeneration = new List<PuzzlePiece>();
+        List<PuzzlePiece> toDestroy = new List<PuzzlePiece>();
 
-        foreach (var piece in activePieces)
-        {
-            List<Vector2> leftPoints = new List<Vector2>();
-            List<Vector2> rightPoints = new List<Vector2>();
+        Debug.Log("开始尝试切割，当前碎片总数: " + activePieces.Count);
 
-            // 核心分割逻辑
-            for (int i = 0; i < piece.points.Count; i++)
-            {
+        foreach (var piece in activePieces) {
+            List<Vector2> leftSide = new List<Vector2>();
+            List<Vector2> rightSide = new List<Vector2>();
+            bool hasIntersection = false;
+
+            for (int i = 0; i < piece.points.Count; i++) {
                 Vector2 p1 = piece.points[i];
                 Vector2 p2 = piece.points[(i + 1) % piece.points.Count];
 
-                float side1 = (lineEnd.x - lineStart.x) * (p1.y - lineStart.y) - (lineEnd.y - lineStart.y) * (p1.x - lineStart.x);
-                float side2 = (lineEnd.x - lineStart.x) * (p2.y - lineStart.y) - (lineEnd.y - lineStart.y) * (p2.x - lineStart.x);
+                float d1 = GetSide(lineStart, lineEnd, p1);
+                float d2 = GetSide(lineStart, lineEnd, p2);
 
-                if (side1 >= 0) leftPoints.Add(p1);
-                if (side1 <= 0) rightPoints.Add(p1);
+                if (d1 >= 0) leftSide.Add(p1);
+                if (d1 <= 0) rightSide.Add(p1);
 
-                if (side1 * side2 < 0)
-                {
-                    float t = side1 / (side1 - side2);
-                    Vector2 intersect = Vector2.Lerp(p1, p2, t);
-                    leftPoints.Add(intersect);
-                    rightPoints.Add(intersect);
+                // 检测交点
+                if (d1 * d2 < -0.0001f) {
+                    Vector2 inter = GetIntersection(lineStart, lineEnd, p1, p2);
+                    leftSide.Add(inter);
+                    rightSide.Add(inter);
+                    hasIntersection = true;
                 }
             }
 
-            if (leftPoints.Count > 2 && rightPoints.Count > 2)
-            {
-                toRemove.Add(piece);
-                toAdd.Add(CreatePiece(leftPoints));
-                toAdd.Add(CreatePiece(rightPoints));
+            // 只有真正切开（两边都有超过2个点）才处理
+            if (hasIntersection && leftSide.Count >= 3 && rightSide.Count >= 3) {
+                toDestroy.Add(piece);
+                newGeneration.Add(CreatePiece(leftSide));
+                newGeneration.Add(CreatePiece(rightSide));
+            } else {
+                newGeneration.Add(piece); // 没切到的保留
             }
         }
 
-        foreach (var r in toRemove) { activePieces.Remove(r); Destroy(r.gameObject); }
-        activePieces.AddRange(toAdd);
+        if (toDestroy.Count > 0) {
+            foreach (var old in toDestroy) Destroy(old.gameObject);
+            activePieces = newGeneration;
+            Debug.Log("切割成功！新碎片总数: " + activePieces.Count);
+        } else {
+            Debug.Log("未切到任何物体");
+        }
     }
 
-    PuzzlePiece CreatePiece(List<Vector2> pts)
-    {
+    float GetSide(Vector2 lStart, Vector2 lEnd, Vector2 p) {
+        return (lEnd.x - lStart.x) * (p.y - lStart.y) - (lEnd.y - lStart.y) * (p.x - lStart.x);
+    }
+
+    Vector2 GetIntersection(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2) {
+        float d = (a2.x - a1.x) * (b2.y - b1.y) - (a2.y - a1.y) * (b2.x - b1.x);
+        float u = ((b1.x - a1.x) * (b2.y - b1.y) - (b1.y - a1.y) * (b2.x - b1.x)) / d;
+        return a1 + u * (a2 - a1);
+    }
+
+    PuzzlePiece CreatePiece(List<Vector2> pts) {
         GameObject go = new GameObject("Piece");
-        PuzzlePiece p = go.AddComponent<PuzzlePiece>();
-        p.Init(pts, pieceMaterial);
-        return p;
+        PuzzlePiece pp = go.AddComponent<PuzzlePiece>();
+        pp.Init(pts, pieceMaterial);
+        return pp;
     }
 }
