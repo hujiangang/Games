@@ -11,6 +11,8 @@ public class GamePlay : MonoBehaviour {
 
     private List<DraggableComponent> allPieces = new List<DraggableComponent>();
 
+    private bool isLevelFinished = false;
+
     void Start() {
         DrawTargetFrame();
         LoadAndStartGame();
@@ -31,12 +33,14 @@ public class GamePlay : MonoBehaviour {
             piecesCount++;
             GameObject go = new($"GamePiece_{piecesCount}");
             PuzzlePiece pp = go.AddComponent<PuzzlePiece>(); // 使用你之前的脚本生成 Mesh
-            pp.Init(pd.vertices, pieceMaterial);
-            pp.GetComponent<MeshRenderer>().material.color = pd.color;
+            pp.Init(pd.vertices, pieceMaterial, pd.color);
 
             // 2. 添加游戏逻辑
             DraggableComponent gp = go.AddComponent<DraggableComponent>();
             gp.targetPos = Vector3.zero; // 因为你是对正方形做的切割，中心通常是 0,0
+
+            Vector3 targetFrameOffset = GameObject.Find("TargetFrame").transform.position;
+            gp.correctWorldPos = pp.transform.position + targetFrameOffset;
 
             // 3. 打乱位置到托盘区 (Tray Zone)
             float randomX = Random.Range(trayArea.xMin, trayArea.xMax);
@@ -71,8 +75,8 @@ public class GamePlay : MonoBehaviour {
 
         lr.positionCount = 4;
         lr.SetPositions(corners);
-        lr.startWidth = 0.02f;
-        lr.endWidth = 0.02f;
+        lr.startWidth = 0.05f;
+        lr.endWidth = 0.05f;
         lr.material = pieceMaterial;
         lr.loop = true;
 
@@ -82,6 +86,9 @@ public class GamePlay : MonoBehaviour {
 
     public void CheckWinCondition()
     {
+
+        if (isLevelFinished) return;
+        
         bool allSnapped = true;
         foreach (var p in allPieces)
         {
@@ -94,6 +101,8 @@ public class GamePlay : MonoBehaviour {
 
         if (allSnapped)
         {
+            isLevelFinished = true;
+            DraggableComponent.isGlobalLocked = true;
             Debug.Log("恭喜！拼图完成！");
             // 这里可以弹出胜利 UI
         }
