@@ -61,7 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\GamePlay\CutterManager.cs" />
-    <Compile Include="Assets\Scripts\GamePlay\DraggablePiece.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\DraggableComponent.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelData.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelEditorController.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelPersistence.cs" />

@@ -23,11 +23,13 @@ public class GamePlay : MonoBehaviour {
 
         string json = File.ReadAllText(path);
         LevelData data = JsonUtility.FromJson<LevelData>(json);
+        int piecesCount = 0;
 
         foreach (var pd in data.pieces)
         {
             // 1. 创建碎片物体
-            GameObject go = new GameObject("GamePiece");
+            piecesCount++;
+            GameObject go = new($"GamePiece_{piecesCount}");
             PuzzlePiece pp = go.AddComponent<PuzzlePiece>(); // 使用你之前的脚本生成 Mesh
             pp.Init(pd.vertices, pieceMaterial);
             pp.GetComponent<MeshRenderer>().material.color = pd.color;
@@ -48,10 +50,13 @@ public class GamePlay : MonoBehaviour {
         }
     }
     
+    /// <summary>
+    /// 画出目标区域框.
+    /// </summary>
     void DrawTargetFrame()
     {
         GameObject frame = new GameObject("TargetFrame");
-        float offsetY = 2.0f; 
+        float offsetY = 2.5f; 
         frame.transform.position = new Vector3(0, offsetY, 0);
         LineRenderer lr = frame.AddComponent<LineRenderer>();
 
@@ -75,20 +80,26 @@ public class GamePlay : MonoBehaviour {
         lr.numCapVertices = 5;
     }
 
-    public void CheckWinCondition() {
+    public void CheckWinCondition()
+    {
         bool allSnapped = true;
-        foreach (var p in allPieces) {
-            if (!p.isSnapped) {
+        foreach (var p in allPieces)
+        {
+            if (!p.isSnapped)
+            {
                 allSnapped = false;
                 break;
             }
         }
 
-        if (allSnapped) {
+        if (allSnapped)
+        {
             Debug.Log("恭喜！拼图完成！");
             // 这里可以弹出胜利 UI
         }
     }
+
+
 
     // 在编辑器里画出托盘区域，方便调试
     void OnDrawGizmos() {

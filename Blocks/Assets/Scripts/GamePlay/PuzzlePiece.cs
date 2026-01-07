@@ -10,6 +10,7 @@ public class PuzzlePiece : MonoBehaviour {
         GetComponent<MeshRenderer>().material = mat;
         // 给个随机颜色方便区分
         GetComponent<MeshRenderer>().material.color = new Color(Random.value, Random.value, Random.value);
+        GetComponent<MeshRenderer>().sortingOrder = 2;
         UpdateMesh();
     }
 
