@@ -9,7 +9,7 @@ public class GamePlay : MonoBehaviour {
     [Header("区域设置")]
     public Rect trayArea = new Rect(-2.5f, -4.5f, 5f, 2f); // 底部托盘范围
 
-    private List<DraggablePiece> allPieces = new List<DraggablePiece>();
+    private List<DraggableComponent> allPieces = new List<DraggableComponent>();
 
     void Start() {
         DrawTargetFrame();
@@ -33,7 +33,7 @@ public class GamePlay : MonoBehaviour {
             pp.GetComponent<MeshRenderer>().material.color = pd.color;
 
             // 2. 添加游戏逻辑
-            DraggablePiece gp = go.AddComponent<DraggablePiece>();
+            DraggableComponent gp = go.AddComponent<DraggableComponent>();
             gp.targetPos = Vector3.zero; // 因为你是对正方形做的切割，中心通常是 0,0
 
             // 3. 打乱位置到托盘区 (Tray Zone)

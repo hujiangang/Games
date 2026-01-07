@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class DraggablePiece : MonoBehaviour {
+public class DraggableComponent : MonoBehaviour {
     public Vector3 targetPos;        // 关卡数据中的原始坐标
     public bool isSnapped = false;   // 是否已吸附
     private Vector3 offset;
