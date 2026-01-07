@@ -3,8 +3,10 @@ using System.Collections.Generic;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(PolygonCollider2D))]
 public class PuzzlePiece : MonoBehaviour {
-    public List<Vector2> points;
+
     private Color pieceColor;
+
+    public List<Vector2> points;
 
     public void Init(List<Vector2> newPoints, Material mat, Color color)
     {

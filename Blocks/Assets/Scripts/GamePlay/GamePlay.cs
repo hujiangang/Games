@@ -7,11 +7,13 @@ public class GamePlay : MonoBehaviour {
     public string levelToLoad = "Level_1"; // 要玩的关卡名
     
     [Header("区域设置")]
-    public Rect trayArea = new Rect(-2.5f, -4.5f, 5f, 2f); // 底部托盘范围
+    public Rect trayArea = new(-2.5f, -4.5f, 5f, 2f); // 底部托盘范围
 
-    private List<DraggableComponent> allPieces = new List<DraggableComponent>();
+    private List<DraggableComponent> allPieces = new();
 
     private bool isLevelFinished = false;
+
+    public static bool isGlobalLocked = false;
 
     void Start() {
         DrawTargetFrame();
@@ -27,6 +29,10 @@ public class GamePlay : MonoBehaviour {
         LevelData data = JsonUtility.FromJson<LevelData>(json);
         int piecesCount = 0;
 
+        Vector3 framePos = GameObject.Find("TargetFrame").transform.position;
+        float len = CutterManager.cutterLength;
+        Rect squareBounds = new(framePos.x - len, framePos.y - len, len * 2, len * 2);
+
         foreach (var pd in data.pieces)
         {
             // 1. 创建碎片物体
@@ -37,10 +43,7 @@ public class GamePlay : MonoBehaviour {
 
             // 2. 添加游戏逻辑
             DraggableComponent gp = go.AddComponent<DraggableComponent>();
-            gp.targetPos = Vector3.zero; // 因为你是对正方形做的切割，中心通常是 0,0
-
-            Vector3 targetFrameOffset = GameObject.Find("TargetFrame").transform.position;
-            gp.correctWorldPos = pp.transform.position + targetFrameOffset;
+            gp.Init(squareBounds, pp.transform.position + framePos, framePos);
 
             // 3. 打乱位置到托盘区 (Tray Zone)
             float randomX = Random.Range(trayArea.xMin, trayArea.xMax);
@@ -59,7 +62,7 @@ public class GamePlay : MonoBehaviour {
     /// </summary>
     void DrawTargetFrame()
     {
-        GameObject frame = new GameObject("TargetFrame");
+        GameObject frame = new("TargetFrame");
         float offsetY = 2.5f; 
         frame.transform.position = new Vector3(0, offsetY, 0);
         LineRenderer lr = frame.AddComponent<LineRenderer>();
@@ -80,7 +83,7 @@ public class GamePlay : MonoBehaviour {
         lr.material = pieceMaterial;
         lr.loop = true;
 
-        lr.numCornerVertices = 5; 
+        lr.numCornerVertices = 5;
         lr.numCapVertices = 5;
     }
 
@@ -88,7 +91,7 @@ public class GamePlay : MonoBehaviour {
     {
 
         if (isLevelFinished) return;
-        
+
         bool allSnapped = true;
         foreach (var p in allPieces)
         {
@@ -102,9 +105,35 @@ public class GamePlay : MonoBehaviour {
         if (allSnapped)
         {
             isLevelFinished = true;
-            DraggableComponent.isGlobalLocked = true;
+            GamePlay.isGlobalLocked = true;
             Debug.Log("恭喜！拼图完成！");
             // 这里可以弹出胜利 UI
+        }
+    }
+    
+    public void CheckWinCondition2() {
+        GameObject frame = new("TargetFrame");
+        // 1. 获取正方形范围
+        Bounds b = frame.GetComponent<Collider2D>().bounds;
+        
+        // 2. 采样检测点 (比如每 0.5 一个点)
+        int pointsFilled = 0;
+        int totalSamples = 0;
+
+        for (float x = b.min.x + 0.1f; x < b.max.x; x += 0.3f) {
+            for (float y = b.min.y + 0.1f; y < b.max.y; y += 0.3f) {
+                totalSamples++;
+                // 发射极短的射线检测这里是否有碎片
+                if (Physics2D.OverlapPoint(new Vector2(x, y))) {
+                    pointsFilled++;
+                }
+            }
+        }
+
+        // 3. 如果 98% 的点都被覆盖了，说明拼图完成
+        float fillPercent = (float)pointsFilled / totalSamples;
+        if (fillPercent > 0.98f) {
+          
         }
     }
 
