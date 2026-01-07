@@ -2,14 +2,14 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 
-public class GamePlayManager : MonoBehaviour {
+public class GamePlay : MonoBehaviour {
     public Material pieceMaterial;
     public string levelToLoad = "Level_1"; // 要玩的关卡名
     
     [Header("区域设置")]
     public Rect trayArea = new Rect(-2.5f, -4.5f, 5f, 2f); // 底部托盘范围
 
-    private List<GameplayPiece> allPieces = new List<GameplayPiece>();
+    private List<DraggablePiece> allPieces = new List<DraggablePiece>();
 
     void Start() {
         DrawTargetFrame();
@@ -33,7 +33,7 @@ public class GamePlayManager : MonoBehaviour {
             pp.GetComponent<MeshRenderer>().material.color = pd.color;
 
             // 2. 添加游戏逻辑
-            GameplayPiece gp = go.AddComponent<GameplayPiece>();
+            DraggablePiece gp = go.AddComponent<DraggablePiece>();
             gp.targetPos = Vector3.zero; // 因为你是对正方形做的切割，中心通常是 0,0
 
             // 3. 打乱位置到托盘区 (Tray Zone)
