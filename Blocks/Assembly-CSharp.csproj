@@ -60,15 +60,15 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\CutterManager.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\CutterManager.cs" />
     <Compile Include="Assets\Scripts\GamePlay\DraggablePiece.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\GameplayPiece.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelData.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelEditorController.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelPersistence.cs" />
-    <Compile Include="Assets\Scripts\GamePlay.cs" />
-    <Compile Include="Assets\Scripts\GameplayPiece.cs" />
-    <Compile Include="Assets\Scripts\PuzzlePiece.cs" />
-    <Compile Include="Assets\Scripts\Triangulator.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\GamePlay.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\Triangulator.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\PuzzlePiece.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
