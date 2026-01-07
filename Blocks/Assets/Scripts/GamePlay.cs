@@ -41,7 +41,7 @@ public class GamePlayManager : MonoBehaviour {
             float randomY = Random.Range(trayArea.yMin, trayArea.yMax);
             go.transform.position = new Vector3(randomX, randomY, 0);
 
-            // 随机旋转增加难度
+            // 随机旋转增加难度(不需要旋转,本身不能旋转的).
             //go.transform.rotation = Quaternion.Euler(0, 0, Random.Range(-30, 30));
 
             allPieces.Add(gp);

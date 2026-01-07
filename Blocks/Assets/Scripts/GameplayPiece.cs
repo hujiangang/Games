@@ -5,11 +5,12 @@ public class GameplayPiece : MonoBehaviour {
     public bool isSnapped = false;   // 是否已吸附
     private Vector3 offset;
     private MeshRenderer m_Renderer;
-    private int originalOrder;
+    private int originalOrder = 1;
 
     void Start() {
         m_Renderer = GetComponent<MeshRenderer>();
         originalOrder = m_Renderer.sortingOrder;
+        targetPos = GameObject.Find("TargetFrame").transform.position;
     }
 
     void OnMouseDown() {
