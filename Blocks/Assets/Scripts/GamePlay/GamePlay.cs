@@ -15,6 +15,8 @@ public class GamePlay : MonoBehaviour {
 
     public static bool isGlobalLocked = false;
 
+    private Rect targetFrameRect;
+
     void Start() {
         DrawTargetFrame();
         LoadAndStartGame();
@@ -31,7 +33,7 @@ public class GamePlay : MonoBehaviour {
 
         Vector3 framePos = GameObject.Find("TargetFrame").transform.position;
         float len = CutterManager.cutterLength;
-        Rect squareBounds = new(framePos.x - len, framePos.y - len, len * 2, len * 2);
+        targetFrameRect = new(framePos.x - len, framePos.y - len, len * 2, len * 2);
 
         foreach (var pd in data.pieces)
         {
@@ -43,7 +45,7 @@ public class GamePlay : MonoBehaviour {
 
             // 2. 添加游戏逻辑
             DraggableComponent gp = go.AddComponent<DraggableComponent>();
-            gp.Init(squareBounds, pp.transform.position + framePos, framePos);
+            gp.Init(targetFrameRect, pp.transform.position + framePos, framePos);
 
             // 3. 打乱位置到托盘区 (Tray Zone)
             float randomX = Random.Range(trayArea.xMin, trayArea.xMax);
@@ -89,7 +91,6 @@ public class GamePlay : MonoBehaviour {
 
     public void CheckWinCondition()
     {
-
         if (isLevelFinished) return;
 
         bool allSnapped = true;
@@ -112,16 +113,13 @@ public class GamePlay : MonoBehaviour {
     }
     
     public void CheckWinCondition2() {
-        GameObject frame = new("TargetFrame");
-        // 1. 获取正方形范围
-        Bounds b = frame.GetComponent<Collider2D>().bounds;
         
-        // 2. 采样检测点 (比如每 0.5 一个点)
+        // 1. 采样检测点 (比如每 0.5 一个点)
         int pointsFilled = 0;
         int totalSamples = 0;
 
-        for (float x = b.min.x + 0.1f; x < b.max.x; x += 0.3f) {
-            for (float y = b.min.y + 0.1f; y < b.max.y; y += 0.3f) {
+        for (float x = targetFrameRect.min.x + 0.1f; x < targetFrameRect.max.x; x += 0.3f) {
+            for (float y = targetFrameRect.min.y + 0.1f; y < targetFrameRect.max.y; y += 0.3f) {
                 totalSamples++;
                 // 发射极短的射线检测这里是否有碎片
                 if (Physics2D.OverlapPoint(new Vector2(x, y))) {
@@ -133,7 +131,8 @@ public class GamePlay : MonoBehaviour {
         // 3. 如果 98% 的点都被覆盖了，说明拼图完成
         float fillPercent = (float)pointsFilled / totalSamples;
         if (fillPercent > 0.98f) {
-          
+            GamePlay.isGlobalLocked = true;
+            Debug.Log("恭喜！拼图完成！");
         }
     }
 

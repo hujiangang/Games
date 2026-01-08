@@ -78,7 +78,7 @@ public class DraggableComponent : MonoBehaviour
         if (TrySnapToAnyEdge())
         {
             // 检查是否拼成完整正方形
-            FindObjectOfType<GamePlay>().CheckWinCondition();
+            FindObjectOfType<GamePlay>().CheckWinCondition2();
              isSnapped = true;
         }
     }
@@ -123,7 +123,8 @@ public class DraggableComponent : MonoBehaviour
                         // 如果此时中心点已经很接近正确答案，直接完全对齐
                         if (Vector3.Distance(transform.position, correctWorldPos) < 0.5f)
                         {
-                            transform.position = correctWorldPos;
+                            // 不需要吸附到正确位置.
+                            //transform.position = correctWorldPos;
                         }
                         return true;
                     }
