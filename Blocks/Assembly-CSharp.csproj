@@ -65,9 +65,12 @@
     <Compile Include="Assets\Scripts\GamePlay\LevelData.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelEditorController.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelPersistence.cs" />
+    <Compile Include="Assets\Scripts\Background\FloatingSquarePool.cs" />
     <Compile Include="Assets\Scripts\GamePlay\GamePlay.cs" />
+    <Compile Include="Assets\Scripts\Background\FloatingSquare.cs" />
     <Compile Include="Assets\Scripts\GamePlay\Triangulator.cs" />
     <Compile Include="Assets\Scripts\GamePlay\PuzzlePiece.cs" />
+    <Compile Include="Assets\Scripts\Background\BackgroundComponent.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
@@ -85,8 +88,9 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
-    <None Include="Assets\Res\Material\SmoothEdgePiece.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
+    <None Include="Assets\Res\Material\SmoothPuzzlePiece.shader" />
+    <None Include="Assets\Res\Material\VectorAA.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />

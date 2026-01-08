@@ -104,7 +104,8 @@ public class DraggableComponent : MonoBehaviour
                 // 3. 判断是否【平行】
                 // 使用点积 (Dot Product)，如果接近 1 或 -1，说明几乎平行
                 float dot = Vector2.Dot(dirPiece, dirTarget);
-                if (Mathf.Abs(dot) > 0.98f)
+                Debug.Log($"dot = {dot}");
+                if (Mathf.Abs(dot) == 1)
                 { // 允许 2 度左右的误差
 
                     // 4. 判断【垂直距离】（是否共线）
@@ -124,7 +125,7 @@ public class DraggableComponent : MonoBehaviour
                         if (Vector3.Distance(transform.position, correctWorldPos) < 0.5f)
                         {
                             // 不需要吸附到正确位置.
-                            //transform.position = correctWorldPos;
+                            transform.position = correctWorldPos;
                         }
                         return true;
                     }

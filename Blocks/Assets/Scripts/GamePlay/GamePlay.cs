@@ -6,8 +6,9 @@ public class GamePlay : MonoBehaviour {
     public Material pieceMaterial;
     public string levelToLoad = "Level_1"; // 要玩的关卡名
     
-    [Header("区域设置")]
-    public Rect trayArea = new(-2.5f, -4.5f, 5f, 2f); // 底部托盘范围
+    [Header("托盘区域设置")]
+    public Vector3 spawnCenter = new Vector3(0, -5, 0); // 圆心位置（通常在屏幕下方）
+    public float spawnRadius = 2.5f;   
 
     private List<DraggableComponent> allPieces = new();
 
@@ -47,10 +48,12 @@ public class GamePlay : MonoBehaviour {
             DraggableComponent gp = go.AddComponent<DraggableComponent>();
             gp.Init(targetFrameRect, pp.transform.position + framePos, framePos);
 
-            // 3. 打乱位置到托盘区 (Tray Zone)
-            float randomX = Random.Range(trayArea.xMin, trayArea.xMax);
-            float randomY = Random.Range(trayArea.yMin, trayArea.yMax);
-            go.transform.position = new Vector3(randomX, randomY, 0);
+            //以 spawnCenter 为中心，在 spawnRadius 半径内随机取点.
+            float minRadius = 0.5f; // 中间留空
+            float r = Random.Range(minRadius, spawnRadius);
+            Vector2 dir = Random.insideUnitCircle.normalized; // 取一个随机方向
+            Vector3 randomPos = spawnCenter + (Vector3)(dir * r);
+            gp.transform.position = randomPos;
 
             // 随机旋转增加难度(不需要旋转,本身不能旋转的).
             //go.transform.rotation = Quaternion.Euler(0, 0, Random.Range(-30, 30));
@@ -70,23 +73,31 @@ public class GamePlay : MonoBehaviour {
         LineRenderer lr = frame.AddComponent<LineRenderer>();
 
         lr.useWorldSpace = false;
+        float lineWidth = 0.1f;
+        lr.startWidth = lineWidth;
+        lr.endWidth = lineWidth;
+
+        // 【核心修改】：外扩坐标
+        // 为了让碎片的边缘正好对准框的“内边缘”，框的路径点要外扩 半个线宽
+        float padding = lineWidth / 2f;
+        float L = CutterManager.cutterLength + padding;
         
-        Vector3[] corners = new Vector3[5];
-        corners[0] = new Vector3(-CutterManager.cutterLength, CutterManager.cutterLength, 0.1f);
-        corners[1] = new Vector3(CutterManager.cutterLength, CutterManager.cutterLength, 0.1f);
-        corners[2] = new Vector3(CutterManager.cutterLength, -CutterManager.cutterLength, 0.1f);
-        corners[3] = new Vector3(-CutterManager.cutterLength, -CutterManager.cutterLength, 0.1f);
+        Vector3[] corners = new Vector3[4];
+        corners[0] = new Vector3(-L, L, 0.1f);
+        corners[1] = new Vector3(L, L, 0.1f);
+        corners[2] = new Vector3(L, -L, 0.1f);
+        corners[3] = new Vector3(-L, -L, 0.1f);
         //corners[4] = new Vector3(-CutterManager.cutterLength, CutterManager.cutterLength, 0.1f); // 闭合
 
         lr.positionCount = 4;
         lr.SetPositions(corners);
-        lr.startWidth = 0.05f;
-        lr.endWidth = 0.05f;
-        lr.material = pieceMaterial;
-        lr.loop = true;
 
-        lr.numCornerVertices = 5;
-        lr.numCapVertices = 5;
+        lr.material = pieceMaterial;
+        lr.startColor = lr.endColor = new Color(0.2627451f, 0.2941177f, 0.3372549f, 1);
+
+        lr.loop = true;
+        lr.numCornerVertices = 4;
+        lr.numCapVertices = 4;
     }
 
     public void CheckWinCondition()
@@ -140,8 +151,9 @@ public class GamePlay : MonoBehaviour {
 
     // 在编辑器里画出托盘区域，方便调试
     void OnDrawGizmos() {
+
+         // 画出打乱碎片的圆形区域
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(new Vector3(trayArea.center.x, trayArea.center.y, 0), 
-                           new Vector3(trayArea.width, trayArea.height, 0));
+        Gizmos.DrawWireSphere(spawnCenter, spawnRadius);
     }
 }

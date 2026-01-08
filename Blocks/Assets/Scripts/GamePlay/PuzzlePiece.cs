@@ -36,8 +36,9 @@ public class PuzzlePiece : MonoBehaviour {
         GetComponent<MeshRenderer>().sortingOrder = 2;
         UpdateMesh();
     }
-    
-     public void Init_levelEdit(List<Vector2> newPoints, Material mat) {
+
+    public void Init_levelEdit(List<Vector2> newPoints, Material mat)
+    {
         this.points = newPoints;
         GetComponent<MeshRenderer>().material = mat;
         // 给个随机颜色方便区分
@@ -45,6 +46,42 @@ public class PuzzlePiece : MonoBehaviour {
         GetComponent<MeshRenderer>().material.color = pieceColor;
         GetComponent<MeshRenderer>().sortingOrder = 2;
         UpdateMesh();
+    }
+    
+    public void UpdateMeshWithAA() {
+        MeshFilter mf = GetComponent<MeshFilter>();
+        Mesh mesh = new Mesh();
+
+        // 1. 计算几何中心 (作为中心点)
+        Vector2 center = Vector2.zero;
+        foreach (var p in points) center += p;
+        center /= points.Count;
+
+        // 2. 准备顶点：中心点(Index 0) + 边缘点(Index 1...N)
+        Vector3[] vertices = new Vector3[points.Count + 1];
+        Vector2[] uvs = new Vector2[points.Count + 1]; // 我们用 UV.x 存储到边缘的距离
+
+        vertices[0] = new Vector3(center.x, center.y, 0);
+        uvs[0] = new Vector2(1, 0); // 中心点，UV 设为 1
+
+        for (int i = 0; i < points.Count; i++) {
+            vertices[i + 1] = new Vector3(points[i].x, points[i].y, 0);
+            uvs[i + 1] = new Vector2(0, 0); // 边缘点，UV 设为 0
+        }
+
+        // 3. 构建三角形
+        int[] triangles = new int[points.Count * 3];
+        for (int i = 0; i < points.Count; i++) {
+            triangles[i * 3] = 0; // 中心点
+            triangles[i * 3 + 1] = i + 1;
+            triangles[i * 3 + 2] = (i + 1 == points.Count) ? 1 : i + 2;
+        }
+
+        mesh.vertices = vertices;
+        mesh.uv = uvs;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+        mf.mesh = mesh;
     }
 
     public void UpdateMesh() {
@@ -67,33 +104,32 @@ public class PuzzlePiece : MonoBehaviour {
         pc.pathCount = 1;
         pc.SetPath(0, points.ToArray());
 
-
+        //AddSmoothOutline();
         // 优化锯齿效果.
-        void AntiAliasing()
-        {
-            // --- 新增：使用 LineRenderer 增加丝滑边缘 ---
+        void AddSmoothOutline() {
             LineRenderer lr = GetComponent<LineRenderer>();
             if (lr == null) lr = gameObject.AddComponent<LineRenderer>();
-
-            // 配置线条
-            lr.startWidth = 0.03f; // 线条宽度，根据需求调整
-            lr.endWidth = 0.03f;
+            
+            lr.startWidth = 0.025f; // 线条不要太粗
+            lr.endWidth = 0.025f;
             lr.loop = true;
-            lr.useWorldSpace = false; // 使用本地坐标
-            lr.numCornerVertices = 5; // 让拐角圆润，消除锯齿感
+            lr.useWorldSpace = false;
+            
+            // 关键：增加转角顶点，让线条变圆润，消除视觉锯齿
+            lr.numCornerVertices = 5;
             lr.numCapVertices = 5;
-            
-            // 设置线条颜色（比碎片颜色深一点点，或者纯白，视觉效果更好）
+
+            // 材质建议使用 Sprites/Default，颜色给一个半透明的深灰色
             lr.material = new Material(Shader.Find("Sprites/Default"));
-            lr.startColor = lr.endColor = pieceColor; // 深色描边
-            
-            // 设置顶点
-            Vector3[] linePoints = new Vector3[points.Count];
+            lr.startColor = lr.endColor = new Color(0, 0, 0, 0.4f); // 40%透明的黑边
+
+            Vector3[] positions = new Vector3[points.Count];
             for (int i = 0; i < points.Count; i++) {
-                linePoints[i] = new Vector3(points[i].x, points[i].y, -0.01f); // 稍微往前靠一点
+                // 稍微在 Z 轴往前放一点点 (-0.01)，确保线盖在图形边缘上
+                positions[i] = new Vector3(points[i].x, points[i].y, -0.01f);
             }
-            lr.positionCount = linePoints.Length;
-            lr.SetPositions(linePoints);
+            lr.positionCount = positions.Length;
+            lr.SetPositions(positions);
         }
     }
 }
