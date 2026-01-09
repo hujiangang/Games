@@ -68,6 +68,7 @@
     <Compile Include="Assets\Scripts\Background\FloatingSquarePool.cs" />
     <Compile Include="Assets\Scripts\GamePlay\GamePlay.cs" />
     <Compile Include="Assets\Scripts\Background\FloatingSquare.cs" />
+    <Compile Include="Assets\Scripts\UI\SlideUpPanel.cs" />
     <Compile Include="Assets\Scripts\GamePlay\Triangulator.cs" />
     <Compile Include="Assets\Scripts\GamePlay\PuzzlePiece.cs" />
     <Compile Include="Assets\Scripts\Background\BackgroundComponent.cs" />
