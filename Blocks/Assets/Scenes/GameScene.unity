@@ -1695,7 +1695,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: f6c04d53b2d8778419158872cb3d252c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 84c9bc5f1aba1c54da85311f473dfa39, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2075,7 +2075,7 @@ GameObject:
   - component: {fileID: 1597834396}
   - component: {fileID: 1597834397}
   m_Layer: 0
-  m_Name: BackgroundManager
+  m_Name: GameBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

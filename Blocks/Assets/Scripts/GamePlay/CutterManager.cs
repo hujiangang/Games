@@ -48,7 +48,7 @@ public class CutterManager : MonoBehaviour {
         }
     }
 
-    void ExecuteSlice(Vector2 lineStart, Vector2 lineEnd) {
+    public void ExecuteSlice(Vector2 lineStart, Vector2 lineEnd) {
         List<PuzzlePiece> newGeneration = new List<PuzzlePiece>();
         List<PuzzlePiece> toDestroy = new List<PuzzlePiece>();
 

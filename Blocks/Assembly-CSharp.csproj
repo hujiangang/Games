@@ -61,13 +61,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\GamePlay\CutterManager.cs" />
+    <Compile Include="Assets\Scripts\LevelEdior\PointLevelEditor.cs" />
     <Compile Include="Assets\Scripts\GamePlay\DraggableComponent.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelData.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelEditorController.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelPersistence.cs" />
     <Compile Include="Assets\Scripts\Background\FloatingSquarePool.cs" />
     <Compile Include="Assets\Scripts\GamePlay\GamePlay.cs" />
+    <Compile Include="Assets\Scripts\LevelEdior\CutterLogic.cs" />
     <Compile Include="Assets\Scripts\Background\FloatingSquare.cs" />
+    <Compile Include="Assets\Scripts\LevelEdior\PointNode.cs" />
     <Compile Include="Assets\Scripts\UI\SlideUpPanel.cs" />
     <Compile Include="Assets\Scripts\GamePlay\Triangulator.cs" />
     <Compile Include="Assets\Scripts\GamePlay\PuzzlePiece.cs" />
