@@ -85,14 +85,20 @@ public class PuzzlePiece : MonoBehaviour {
     }
 
     public void UpdateMesh() {
-        Mesh mesh = new Mesh();
+        
+        Mesh mesh = new();
+
+         // 凹多边形不能有中心点，直接转换顶点
         Vector3[] vertices = new Vector3[points.Count];
+        Vector2[] uvs = new Vector2[points.Count];
         for (int i = 0; i < points.Count; i++) {
             vertices[i] = new Vector3(points[i].x, points[i].y, 0);
+            uvs[i] = points[i]; // 简单贴图坐标
         }
 
         Triangulator tr = new Triangulator(points.ToArray());
         mesh.vertices = vertices;
+        //mesh.uv = uvs;
         mesh.triangles = tr.Triangulate();
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
@@ -101,7 +107,7 @@ public class PuzzlePiece : MonoBehaviour {
         
         // 更新碰撞体
         PolygonCollider2D pc = GetComponent<PolygonCollider2D>();
-        pc.pathCount = 1;
+        //pc.pathCount = 1;
         pc.SetPath(0, points.ToArray());
 
         //AddSmoothOutline();

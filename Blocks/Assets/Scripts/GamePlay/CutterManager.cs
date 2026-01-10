@@ -25,6 +25,7 @@ public class CutterManager : MonoBehaviour {
     }
 
     void Update() {
+
         // 获取鼠标位置，注意 Z 轴要设为相机的距离
         Vector3 mousePos = Input.mousePosition;
         mousePos.z = Mathf.Abs(Camera.main.transform.position.z);
