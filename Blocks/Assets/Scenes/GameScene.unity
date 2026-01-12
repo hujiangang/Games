@@ -2382,7 +2382,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pieceMaterial: {fileID: 2100000, guid: 2c396c7a9fa111041ad7ff3bb1887dcb, type: 2}
-  levelToLoad: Level_1
+  levelToLoad: Level_2
   spawnCenter: {x: 0, y: -2.06, z: 0}
   spawnRadius: 2
 --- !u!1 &1832499371

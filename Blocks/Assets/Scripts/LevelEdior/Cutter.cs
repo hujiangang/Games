@@ -13,7 +13,7 @@ public class Cutter : MonoBehaviour
     }
 
 
-    void CreateInitialSquare()
+    public void CreateInitialSquare()
     {
         float L = CutterManager.cutterLength;
         List<Vector2> basePoints = new()

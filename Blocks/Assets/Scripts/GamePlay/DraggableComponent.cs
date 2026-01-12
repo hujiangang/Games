@@ -23,7 +23,7 @@ public class DraggableComponent : MonoBehaviour
     /// <summary>
     /// 吸附灵敏度.
     /// </summary>
-    private float snapThreshold = 0.4f;
+    private float snapThreshold = 2f;
 
     private PuzzlePiece puzzlePiece;
     private Rect squareBounds;

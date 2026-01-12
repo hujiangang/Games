@@ -151,6 +151,15 @@ public class LineDrawer : MonoBehaviour
         linePreview.positionCount = 0;
     }
 
+    public void ClearLinePrefab()
+    {
+        GameObject[] lines = GameObject.FindGameObjectsWithTag("EditorLine");
+        foreach (var line in lines)
+        {
+            Destroy(line);
+        }
+    }
+
     public void ConfirmCut()
     {
         if (allPaths.Count < 1) return;
@@ -161,10 +170,10 @@ public class LineDrawer : MonoBehaviour
         Cutter cutter = FindObjectOfType<Cutter>();
         if (cutter != null)
         {
-            //cutter.ExecutePolylineSlice(new List<Vector2>(points));
             cutter.ExecuteAllCuts(allPaths);
         }
-        
+
         ClearPath();
+        ClearLinePrefab();
     }
 }
