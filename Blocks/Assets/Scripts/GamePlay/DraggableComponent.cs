@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// 拖拽功能.
@@ -23,7 +24,7 @@ public class DraggableComponent : MonoBehaviour
     /// <summary>
     /// 吸附灵敏度.
     /// </summary>
-    private float snapThreshold = 2f;
+    private float snapThreshold = 0.35f;
 
     private PuzzlePiece puzzlePiece;
     private Rect squareBounds;
@@ -44,27 +45,66 @@ public class DraggableComponent : MonoBehaviour
         this.framePos = framePos;
     }
 
-    void OnMouseDown()
+
+    #region input_tag
+
+    public void StartDragging(Vector2 worldMousePos)
+    {
+        if (GamePlay.isGlobalLocked) return;
+        isSnapped = false;
+
+        // 视觉提升
+        originalOrder++;
+        m_Renderer.sortingOrder = originalOrder;
+
+        // 计算偏移量
+        offset = (Vector2)transform.position - worldMousePos;
+    }
+
+    public void FollowMouse(Vector2 worldMousePos)
+    {
+        if (GamePlay.isGlobalLocked) return;
+        transform.position = (Vector3)(worldMousePos + (Vector2)offset);
+    }
+
+    public void StopDragging()
+    {
+        if (GamePlay.isGlobalLocked) return;
+
+        if (!CheckIfFullyInside()) return;
+
+        if (TrySnapToAnyEdge())
+        {
+            FindObjectOfType<GamePlay>().CheckWinCondition2();
+            isSnapped = true;
+        }
+    }
+    #endregion
+    
+    /*
+
+    public void OnPointerDown(PointerEventData eventData)
     {
         if (GamePlay.isGlobalLocked) return;
 
         isSnapped = false;
 
         originalOrder++;
+        Debug.Log("OnPointerDown: " + transform.name + "start sortingOrder: " + m_Renderer.sortingOrder + " end sortingOrder: " + originalOrder);
         m_Renderer.sortingOrder = originalOrder;
 
         Vector3 mousePos = GetWorldMousePos();
         offset = transform.position - mousePos;
     }
 
-    void OnMouseDrag()
+    public void OnDrag(PointerEventData eventData)
     {
         if (GamePlay.isGlobalLocked) return;
 
         transform.position = GetWorldMousePos() + offset;
     }
 
-    void OnMouseUp()
+    public void OnPointerUp(PointerEventData eventData)
     {
         if (GamePlay.isGlobalLocked) return;
 
@@ -79,59 +119,90 @@ public class DraggableComponent : MonoBehaviour
         {
             // 检查是否拼成完整正方形
             FindObjectOfType<GamePlay>().CheckWinCondition2();
-             isSnapped = true;
+            isSnapped = true;
         }
+        
     }
+    */
 
 
     bool TrySnapToAnyEdge()
     {
-        // 1. 获取场景中所有已存在的边缘线段 (包括正方形边界和其他碎片)
+        // 1. 获取场景中所有目标线段
         List<EdgeSegment> targetEdges = GetAllAvailableEdges();
 
-        foreach (var target in targetEdges)
+        // 记录水平方向(X)和垂直方向(Y)上的最小偏移
+        float minOffsetX = float.MaxValue;
+        float minOffsetY = float.MaxValue;
+
+        bool snappedX = false;
+        bool snappedY = false;
+
+        // 2. 遍历当前碎片的所有边
+        for (int i = 0; i < puzzlePiece.points.Count; i++)
         {
-            for (int i = 0; i < puzzlePiece.points.Count; i++)
+            Vector2 p1 = transform.TransformPoint(puzzlePiece.points[i]);
+            Vector2 p2 = transform.TransformPoint(puzzlePiece.points[(i + 1) % puzzlePiece.points.Count]);
+            Vector2 dirPiece = (p2 - p1).normalized;
+
+            foreach (var target in targetEdges)
             {
-                // 1. 获取当前碎片的边线段
-                Vector2 p1 = transform.TransformPoint(puzzlePiece.points[i]);
-                Vector2 p2 = transform.TransformPoint(puzzlePiece.points[(i + 1) % puzzlePiece.points.Count]);
-
-                // 2. 计算两条线的方向向量
-                Vector2 dirPiece = (p2 - p1).normalized;
                 Vector2 dirTarget = (target.end - target.start).normalized;
+                float dot = Mathf.Abs(Vector2.Dot(dirPiece, dirTarget));
 
-                // 3. 判断是否【平行】
-                // 使用点积 (Dot Product)，如果接近 1 或 -1，说明几乎平行
-                float dot = Vector2.Dot(dirPiece, dirTarget);
-                Debug.Log($"dot = {dot}");
-                if (Mathf.Abs(dot) == 1)
-                { // 允许 2 度左右的误差
+                // 判断是否平行 (允许极小误差)
+                if (dot > 0.999f)
+                {
+                    // 计算点到线的垂直向量
+                    // 使用 (target.start - p1) 在法线方向上的投影
+                    Vector2 normal = new Vector2(-dirTarget.y, dirTarget.x);
+                    float dist = Vector2.Dot(target.start - p1, normal);
 
-                    // 4. 判断【垂直距离】（是否共线）
-                    // 计算 p1 到目标线段所在的直线的距离
-                    float dist = PointToLineDistance(p1, target.start, target.end);
-
-                    if (dist < snapThreshold)
+                    if (Mathf.Abs(dist) < snapThreshold)
                     {
-                        // 5. 【吸附动作】
-                        // 计算目标的法线方向，并将碎片“拍”过去
-                        Vector2 normal = new(-dirTarget.y, dirTarget.x);
-                        float moveDist = Vector2.Dot(target.start - p1, normal);
+                        Vector2 moveVec = normal * dist;
 
-                        transform.position += (Vector3)(normal * moveDist);
-
-                        // 如果此时中心点已经很接近正确答案，直接完全对齐
-                        if (Vector3.Distance(transform.position, correctWorldPos) < 0.5f)
+                        // 判断该吸附是偏向水平还是垂直
+                        // 如果法线主要朝向左右(X)，则它是垂直边，我们要修正 X 坐标
+                        if (Mathf.Abs(normal.x) > 0.9f) 
                         {
-                            // 不需要吸附到正确位置.
-                            transform.position = correctWorldPos;
+                            if (Mathf.Abs(moveVec.x) < Mathf.Abs(minOffsetX))
+                            {
+                                minOffsetX = moveVec.x;
+                                snappedX = true;
+                            }
                         }
-                        return true;
+                        // 如果法线主要朝向上下(Y)，则它是水平边，我们要修正 Y 坐标
+                        else if (Mathf.Abs(normal.y) > 0.9f)
+                        {
+                            if (Mathf.Abs(moveVec.y) < Mathf.Abs(minOffsetY))
+                            {
+                                minOffsetY = moveVec.y;
+                                snappedY = true;
+                            }
+                        }
                     }
                 }
             }
         }
+
+        // 3. 应用偏移
+        Vector3 finalPos = transform.position;
+        if (snappedX) finalPos.x += minOffsetX;
+        if (snappedY) finalPos.y += minOffsetY;
+
+        if (snappedX || snappedY)
+        {
+            transform.position = finalPos;
+
+            // 特殊检查：如果吸附后非常接近“终点位置”，直接强制对齐
+            if (Vector3.Distance(transform.position, correctWorldPos) < 0.8f) // 这里的阈值可根据需要调大
+            {
+                transform.position = correctWorldPos;
+            }
+            return true;
+        }
+
         return false;
     }
     

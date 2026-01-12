@@ -46,8 +46,11 @@ public class BackgroundComponent : MonoBehaviour
 
         go.transform.position = new Vector3(Random.Range(minX, maxX), spawnY, 0);
 
-        // 3. 添加行为组件
-        FloatingSquare fs = go.AddComponent<FloatingSquare>();
+        if (!go.TryGetComponent<FloatingSquare>(out var fs))
+        {
+            // 添加行为组件
+            fs = go.AddComponent<FloatingSquare>();
+        }
         
         // 4. 随机化属性
         float speed = Random.Range(minSpeed, maxSpeed);

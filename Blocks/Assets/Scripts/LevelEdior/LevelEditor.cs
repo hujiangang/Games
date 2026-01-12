@@ -21,6 +21,8 @@ public class LevelEditor : MonoBehaviour {
         cutter.activePieces.Clear();
         cutter.CreateInitialSquare();
 
+        RefreshLevelList();
+
         sumLevel++;
         currentLevelName = "Level_" + sumLevel;
         levelNameText.text = currentLevelName;
