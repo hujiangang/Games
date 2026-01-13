@@ -1,5 +1,10 @@
 using UnityEngine;
 
+
+/// <summary>
+/// 碎片从上往下掉落效果.
+/// </summary>
+
 public class FallAndEnableDrag : MonoBehaviour
 {
     Vector3 start, end;
@@ -24,8 +29,8 @@ public class FallAndEnableDrag : MonoBehaviour
         if (nt >= 1)
         {
             transform.position = end;
-             // 落地后开碰撞，就能拖了.
-            col.enabled = true;  
+            // 落地后开碰撞，就能拖了.
+            col.enabled = true;
             Destroy(this);
         }
     }

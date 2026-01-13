@@ -26,6 +26,8 @@ public class GamePlay : MonoBehaviour {
 
     private Rect targetFrameRect;
 
+    private LevelData currLevelData;
+
     void Start() {
         DrawTargetFrame();
         LoadAndStartGame();
@@ -40,10 +42,12 @@ public class GamePlay : MonoBehaviour {
         string json = File.ReadAllText(path);
         LevelData data = JsonUtility.FromJson<LevelData>(json);
         int piecesCount = 0;
-
+        currLevelData = data;
+        
         Vector3 framePos = GameObject.Find("TargetFrame").transform.position;
         float len = CutterManager.cutterLength;
         targetFrameRect = new(framePos.x - len, framePos.y - len, len * 2, len * 2);
+        int sumPieceCount = data.pieces.Count;
 
         foreach (var pd in data.pieces)
         {
@@ -55,16 +59,17 @@ public class GamePlay : MonoBehaviour {
             };
             // 使用你之前的脚本生成 Mesh.
             PuzzlePiece pp = go.AddComponent<PuzzlePiece>();
-            pp.Init(pd.vertices, pieceMaterial, pd.color);
+            pp.Init(pd.vertices, pieceMaterial, pd.color, piecesCount);
 
             allPiecePolys.Add(pp.GetComponent<PolygonCollider2D>());
+            pp.correctWorldPos = pp.transform.position + framePos;
 
             // 2. 添加游戏逻辑
             DraggableComponent gp = go.AddComponent<DraggableComponent>();
-            gp.Init(targetFrameRect, pp.transform.position + framePos, framePos);
+            gp.Init(targetFrameRect, pp.transform.position + framePos, framePos,sumPieceCount + 1);
 
             //以 spawnCenter 为中心，在 spawnRadius 半径内随机取点.
-            float minRadius = 0.5f; // 中间留空
+            float minRadius = 0.8f; // 中间留空
             float r = Random.Range(minRadius, spawnRadius);
             Vector2 dir = Random.insideUnitCircle.normalized; // 取一个随机方向
             Vector3 endPos = spawnCenter + (Vector3)(dir * r);
@@ -197,10 +202,31 @@ public class GamePlay : MonoBehaviour {
 
 
     // 在编辑器里画出托盘区域，方便调试
-    void OnDrawGizmos() {
+    void OnDrawGizmos()
+    {
 
-         // 画出打乱碎片的圆形区域
+        // 画出打乱碎片的圆形区域
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(spawnCenter, spawnRadius);
     }
+
+    #region Event_Register_Handler
+
+    private void OnLook()
+    {
+        Debug.Log("玩家看了一眼");
+        UIManager.instance.OpenHintWindow(currLevelData);
+    }
+
+    public void OnEnable()
+    {
+        GameEvents.RegisterBasicEvent(GameBasicEvent.Look, OnLook);
+    }
+
+    public void OnDisable()
+    {
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.Look, OnLook);
+    }
+    
+    #endregion
 }

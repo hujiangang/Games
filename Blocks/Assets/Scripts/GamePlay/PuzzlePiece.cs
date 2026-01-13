@@ -8,7 +8,10 @@ public class PuzzlePiece : MonoBehaviour {
 
     public List<Vector2> points;
 
-    public void Init(List<Vector2> newPoints, Material mat, Color color)
+    public Vector3 correctWorldPos;
+
+
+    public void Init(List<Vector2> newPoints, Material mat, Color color, int sortingOrder)
     {
 
         pieceColor = color;
@@ -33,7 +36,7 @@ public class PuzzlePiece : MonoBehaviour {
         // 给个随机颜色方便区分
         //pieceColor = new Color(Random.value, Random.value, Random.value);
         GetComponent<MeshRenderer>().material.color = pieceColor;
-        GetComponent<MeshRenderer>().sortingOrder = 2;
+        GetComponent<MeshRenderer>().sortingOrder = sortingOrder;
         UpdateMesh();
     }
 
@@ -43,6 +46,17 @@ public class PuzzlePiece : MonoBehaviour {
         GetComponent<MeshRenderer>().material = mat;
         // 给个随机颜色方便区分
         pieceColor = new Color(Random.value, Random.value, Random.value);
+        GetComponent<MeshRenderer>().material.color = pieceColor;
+        GetComponent<MeshRenderer>().sortingOrder = 2;
+        UpdateMesh();
+    }
+
+    public void Init_Preview(List<Vector2> newPoints, Material mat,Color color)
+    {
+        this.points = newPoints;
+        GetComponent<MeshRenderer>().material = mat;
+        // 给个随机颜色方便区分
+        pieceColor = color;
         GetComponent<MeshRenderer>().material.color = pieceColor;
         GetComponent<MeshRenderer>().sortingOrder = 2;
         UpdateMesh();

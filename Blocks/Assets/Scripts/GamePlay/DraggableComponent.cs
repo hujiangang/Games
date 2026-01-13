@@ -43,11 +43,12 @@ public class DraggableComponent : MonoBehaviour
         puzzlePiece = GetComponent<PuzzlePiece>();
     }
 
-    public void Init(Rect rect, Vector3 correctPos, Vector3 framePos)
+    public void Init(Rect rect, Vector3 correctPos, Vector3 framePos, int sortingOrder)
     {
         squareBounds = rect;
         correctWorldPos = correctPos;
         this.framePos = framePos;
+        originalOrder = sortingOrder;
     }
 
 

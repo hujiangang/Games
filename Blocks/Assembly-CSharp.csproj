@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\GamePlay\InputManager.cs" />
     <Compile Include="Assets\Scripts\GamePlay\CutterManager.cs" />
+    <Compile Include="Assets\Scripts\UI\BasicUI.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.Engine.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\HashCode.cs" />
     <Compile Include="Assets\Scripts\GamePlay\FallAndEnableDrag.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="Assets\Scripts\LevelEdior\LineDrawer.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelEditorController.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelPersistence.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\GameEvent.cs" />
     <Compile Include="Assets\Scripts\Background\FloatingSquarePool.cs" />
     <Compile Include="Assets\Scripts\GamePlay\GamePlay.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.cs" />
@@ -82,11 +84,14 @@
     <Compile Include="Assets\Scripts\GamePlay\PuzzlePiece.cs" />
     <Compile Include="Assets\Scripts\Background\BackgroundComponent.cs" />
     <Compile Include="Assets\Scripts\LevelEdior\Cutter.cs" />
+    <Compile Include="Assets\Scripts\UI\UIManager.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.Triangulation.cs" />
     <Compile Include="Assets\Scripts\LevelEdior\Clipper2CutterHelper.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.RectClip.cs" />
     <Compile Include="Assets\Scripts\LevelEdior\LevelEditor.cs" />
+    <Compile Include="Assets\Scripts\UI\HintWindow.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\PooledList.cs" />
+    <Compile Include="Assets\Scripts\UI\UIContentUpdate.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
