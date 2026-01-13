@@ -24,12 +24,17 @@ public class DraggableComponent : MonoBehaviour
     /// <summary>
     /// 吸附灵敏度.
     /// </summary>
-    private float snapThreshold = 0.35f;
+    private float snapThreshold = 0.5f;
 
     private PuzzlePiece puzzlePiece;
     private Rect squareBounds;
 
     private Vector3 framePos;
+
+    /// <summary>
+    /// 吸附位置修正阈值.
+    /// </summary>
+    private float snapCorrectPosThreshold = 0.2f;
 
 
     void Awake()
@@ -196,7 +201,7 @@ public class DraggableComponent : MonoBehaviour
             transform.position = finalPos;
 
             // 特殊检查：如果吸附后非常接近“终点位置”，直接强制对齐
-            if (Vector3.Distance(transform.position, correctWorldPos) < 0.1f) // 这里的阈值可根据需要调大
+            if (Vector3.Distance(transform.position, correctWorldPos) < snapCorrectPosThreshold) // 这里的阈值可根据需要调大
             {
                 transform.position = correctWorldPos;
             }

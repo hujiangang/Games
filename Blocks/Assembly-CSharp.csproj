@@ -64,6 +64,7 @@
     <Compile Include="Assets\Scripts\GamePlay\CutterManager.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.Engine.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\HashCode.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\FallAndEnableDrag.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.Core.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.Offset.cs" />
     <Compile Include="Assets\Scripts\GamePlay\DraggableComponent.cs" />

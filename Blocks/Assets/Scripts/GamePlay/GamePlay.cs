@@ -7,10 +7,10 @@ public class GamePlay : MonoBehaviour {
     public string levelToLoad = "Level_1"; // 要玩的关卡名
     
     [Header("托盘区域设置")]
-    public Vector3 spawnCenter = new Vector3(0, -5, 0); // 圆心位置（通常在屏幕下方）
+    public Vector3 spawnCenter = new(0, -5, 0);
     public float spawnRadius = 2.5f;   
 
-    private List<DraggableComponent> allPieces = new();
+    private readonly List<DraggableComponent> allPieces = new();
 
     public static bool isGlobalLocked = false;
 
@@ -49,8 +49,10 @@ public class GamePlay : MonoBehaviour {
         {
             // 1. 创建碎片物体
             piecesCount++;
-            GameObject go = new($"GamePiece_{piecesCount}");
-            go.tag = "PuzzlePiece";
+            GameObject go = new($"GamePiece_{piecesCount}")
+            {
+                tag = "PuzzlePiece"
+            };
             // 使用你之前的脚本生成 Mesh.
             PuzzlePiece pp = go.AddComponent<PuzzlePiece>();
             pp.Init(pd.vertices, pieceMaterial, pd.color);
@@ -65,8 +67,15 @@ public class GamePlay : MonoBehaviour {
             float minRadius = 0.5f; // 中间留空
             float r = Random.Range(minRadius, spawnRadius);
             Vector2 dir = Random.insideUnitCircle.normalized; // 取一个随机方向
-            Vector3 randomPos = spawnCenter + (Vector3)(dir * r);
-            gp.transform.position = randomPos;
+            Vector3 endPos = spawnCenter + (Vector3)(dir * r);
+
+            const float dropHeight = 10f;
+            Vector3 startPos = endPos + Vector3.up * dropHeight;
+            go.transform.position = startPos;
+
+             // 3. 开始掉落
+             FallAndEnableDrag fader = go.AddComponent<FallAndEnableDrag>();
+             fader.BeginFall(startPos, endPos);
 
             // 随机旋转增加难度(不需要旋转,本身不能旋转的).
             //go.transform.rotation = Quaternion.Euler(0, 0, Random.Range(-30, 30));
@@ -153,17 +162,27 @@ public class GamePlay : MonoBehaviour {
 
         double ratio = fillArea / frameArea;
 
+        // 2. 检查是否填充超过 95%.
+        if (ratio > 0.95f)
+        {
+            GamePlay.isGlobalLocked = true;
+            Debug.Log("恭喜！拼图完成！");
+        }
+
         Debug.Log($"填充区域面积: {fillArea}, 目标区域面积: {frameArea}, 填充比例: {ratio}");
     }
 
 
+    /// <summary>
+    /// 计算目标区域的面积.
+    /// </summary>
     private void ComputeFrameArea()
     {
         Vector3 framePos = GameObject.Find("TargetFrame").transform.position;
         float L = CutterManager.cutterLength;
         Vector2 worldPos = framePos;
 
-        List<Vector2> polygon = new List<Vector2>
+        List<Vector2> polygon = new()
         {
             worldPos + new Vector2(-L,  L),
             worldPos + new Vector2( L,  L),
