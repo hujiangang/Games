@@ -1,5 +1,7 @@
 using Clipper2Lib;
+using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 public static class Clipper2CutterHelper
@@ -29,13 +31,70 @@ public static class Clipper2CutterHelper
         foreach (var solPath in solution)
         {
             // 过滤掉因为膨胀产生的微小细条（碎片面积太小则忽略）
-            if (Clipper.Area(solPath) < 0.01) continue; 
+            if (Clipper.Area(solPath) < 0.01) continue;
 
             List<Vector2> pts = new List<Vector2>();
             foreach (var pt in solPath) pts.Add(new Vector2((float)pt.x, (float)pt.y));
-            
+
             if (pts.Count >= 3) results.Add(pts);
         }
         return results;
     }
+
+    /// <summary>
+    /// 计算多边形面积.
+    /// </summary>
+    /// <param name="path">多边形顶点列表.</param>
+    /// <returns>多边形面积.</returns>
+    public static double GetPolygonArea(List<Vector2> path)
+    {
+        return  Math.Abs(Clipper.Area(new PathD(path.ConvertAll(pt => new PointD(pt.x, pt.y)))));
+    }
+
+
+    /// <summary>
+    /// 计算两个多边形的交集面积.
+    /// </summary>
+    /// <param name="piecePolys">碎片块多边形列表.</param>
+    /// <param name="framePoints">外框多边形顶点列表.</param>
+    /// <returns>两个多边形交集面积.</returns>
+    public static double GetIntersectionArea(List<PolygonCollider2D> piecePolys, Vector2[] framePoints)
+    {
+        // 1. 设置主体
+        Paths64 subjects  = new (piecePolys.Count);
+        foreach (var poly in piecePolys)
+            subjects.Add(Path64FromPoly(poly));
+
+        // 2. 把目标框做成 clips
+        Path64 framePath = new();
+        foreach (var v in framePoints) framePath.Add(new Point64(v.x, v.y));
+        Paths64 clips = new Paths64(1){ framePath };
+
+        // 3. 交集
+        Paths64 intersect = Clipper.Intersect(subjects, clips, FillRule.NonZero);
+
+       // 4. 面积累加
+        double area = 0;
+        foreach (var path in intersect)
+            area += Math.Abs(Clipper.Area(path));
+
+        return area;
+    }
+
+
+    /// <summary>
+    /// 从PolygonCollider2D转换为Path64.
+    /// </summary>
+    /// <param name="poly"></param>
+    /// <returns></returns>
+    private static Path64 Path64FromPoly(PolygonCollider2D poly)
+    {
+        Vector2[] pts = poly.points;
+        Path64 path = new (pts.Length);
+        Vector2 worldPos = poly.transform.position;
+        foreach (var p in pts)
+            path.Add(new Point64(worldPos.x + p.x, worldPos.y + p.y));
+        return path;
+    }
+
 }

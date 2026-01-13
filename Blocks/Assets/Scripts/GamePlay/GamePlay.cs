@@ -12,15 +12,24 @@ public class GamePlay : MonoBehaviour {
 
     private List<DraggableComponent> allPieces = new();
 
-    private bool isLevelFinished = false;
-
     public static bool isGlobalLocked = false;
+
+    /// <summary>
+    /// 缓存外框面积.
+    /// </summary>
+    private double frameArea;
+
+    List<PolygonCollider2D> allPiecePolys = new();
+     
+
+    Vector2[] framePoints;
 
     private Rect targetFrameRect;
 
     void Start() {
         DrawTargetFrame();
         LoadAndStartGame();
+        ComputeFrameArea();
     }
 
     void LoadAndStartGame()
@@ -41,8 +50,12 @@ public class GamePlay : MonoBehaviour {
             // 1. 创建碎片物体
             piecesCount++;
             GameObject go = new($"GamePiece_{piecesCount}");
-            PuzzlePiece pp = go.AddComponent<PuzzlePiece>(); // 使用你之前的脚本生成 Mesh
+            go.tag = "PuzzlePiece";
+            // 使用你之前的脚本生成 Mesh.
+            PuzzlePiece pp = go.AddComponent<PuzzlePiece>();
             pp.Init(pd.vertices, pieceMaterial, pd.color);
+
+            allPiecePolys.Add(pp.GetComponent<PolygonCollider2D>());
 
             // 2. 添加游戏逻辑
             DraggableComponent gp = go.AddComponent<DraggableComponent>();
@@ -61,14 +74,14 @@ public class GamePlay : MonoBehaviour {
             allPieces.Add(gp);
         }
     }
-    
+
     /// <summary>
     /// 画出目标区域框.
     /// </summary>
     void DrawTargetFrame()
     {
         GameObject frame = new("TargetFrame");
-        float offsetY = 2.5f; 
+        float offsetY = 2.5f;
         frame.transform.position = new Vector3(0, offsetY, 0);
         LineRenderer lr = frame.AddComponent<LineRenderer>();
 
@@ -81,7 +94,6 @@ public class GamePlay : MonoBehaviour {
         // 为了让碎片的边缘正好对准框的“内边缘”，框的路径点要外扩 半个线宽
         float padding = lineWidth / 2f;
         float L = CutterManager.cutterLength + padding;
-        
         Vector3[] corners = new Vector3[4];
         corners[0] = new Vector3(-L, L, 0.1f);
         corners[1] = new Vector3(L, L, 0.1f);
@@ -100,40 +112,26 @@ public class GamePlay : MonoBehaviour {
         lr.numCapVertices = 4;
     }
 
-    public void CheckWinCondition()
+
+    /// <summary>
+    /// 检查是否拼图完成
+    /// 在拼图区域内均匀采样点，检测是否被碎片覆盖，若覆盖率达到 98% 以上即判定为完成.
+    /// </summary>
+    public void CheckWinCondition2()
     {
-        if (isLevelFinished) return;
-
-        bool allSnapped = true;
-        foreach (var p in allPieces)
-        {
-            if (!p.isSnapped)
-            {
-                allSnapped = false;
-                break;
-            }
-        }
-
-        if (allSnapped)
-        {
-            isLevelFinished = true;
-            GamePlay.isGlobalLocked = true;
-            Debug.Log("恭喜！拼图完成！");
-            // 这里可以弹出胜利 UI
-        }
-    }
-    
-    public void CheckWinCondition2() {
-        
         // 1. 采样检测点 (比如每 0.5 一个点)
         int pointsFilled = 0;
         int totalSamples = 0;
+        float sampleStep = 0.3f;
 
-        for (float x = targetFrameRect.min.x + 0.1f; x < targetFrameRect.max.x; x += 0.3f) {
-            for (float y = targetFrameRect.min.y + 0.1f; y < targetFrameRect.max.y; y += 0.3f) {
+        for (float x = targetFrameRect.min.x + 0.1f; x < targetFrameRect.max.x; x += sampleStep)
+        {
+            for (float y = targetFrameRect.min.y + 0.1f; y < targetFrameRect.max.y; y += sampleStep)
+            {
                 totalSamples++;
                 // 发射极短的射线检测这里是否有碎片
-                if (Physics2D.OverlapPoint(new Vector2(x, y))) {
+                if (Physics2D.OverlapPoint(new Vector2(x, y)))
+                {
                     pointsFilled++;
                 }
             }
@@ -141,12 +139,42 @@ public class GamePlay : MonoBehaviour {
 
         // 3. 如果 98% 的点都被覆盖了，说明拼图完成
         float fillPercent = (float)pointsFilled / totalSamples;
-        if (fillPercent > 0.98f) {
+        if (fillPercent > 0.98f)
+        {
             GamePlay.isGlobalLocked = true;
             Debug.Log("恭喜！拼图完成！");
         }
+
     }
 
+    public void CheckWinCondition3()
+    {
+        double fillArea = Clipper2CutterHelper.GetIntersectionArea(allPiecePolys, framePoints);
+
+        double ratio = fillArea / frameArea;
+
+        Debug.Log($"填充区域面积: {fillArea}, 目标区域面积: {frameArea}, 填充比例: {ratio}");
+    }
+
+
+    private void ComputeFrameArea()
+    {
+        Vector3 framePos = GameObject.Find("TargetFrame").transform.position;
+        float L = CutterManager.cutterLength;
+        Vector2 worldPos = framePos;
+
+        List<Vector2> polygon = new List<Vector2>
+        {
+            worldPos + new Vector2(-L,  L),
+            worldPos + new Vector2( L,  L),
+            worldPos + new Vector2( L, -L),
+            worldPos + new Vector2(-L, -L)
+        };
+
+        framePoints = polygon.ToArray();
+
+        frameArea = Clipper2CutterHelper.GetPolygonArea(polygon);
+    }
 
 
     // 在编辑器里画出托盘区域，方便调试

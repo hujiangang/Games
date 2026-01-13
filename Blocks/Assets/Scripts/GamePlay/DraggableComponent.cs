@@ -75,7 +75,7 @@ public class DraggableComponent : MonoBehaviour
 
         if (TrySnapToAnyEdge())
         {
-            FindObjectOfType<GamePlay>().CheckWinCondition2();
+            FindObjectOfType<GamePlay>().CheckWinCondition3();
             isSnapped = true;
         }
     }
@@ -196,7 +196,7 @@ public class DraggableComponent : MonoBehaviour
             transform.position = finalPos;
 
             // 特殊检查：如果吸附后非常接近“终点位置”，直接强制对齐
-            if (Vector3.Distance(transform.position, correctWorldPos) < 0.8f) // 这里的阈值可根据需要调大
+            if (Vector3.Distance(transform.position, correctWorldPos) < 0.1f) // 这里的阈值可根据需要调大
             {
                 transform.position = correctWorldPos;
             }
