@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 
 public class GamePlay : MonoBehaviour {
+
+    /// <summary>
+    /// 是否全局锁定，防止操作.
+    /// </summary>
+    public static bool isGlobalLocked = false;
+
     public Material pieceMaterial;
-    public string levelToLoad = "Level_1"; // 要玩的关卡名
     
     [Header("托盘区域设置")]
     public Vector3 spawnCenter = new(0, -5, 0);
@@ -12,35 +17,87 @@ public class GamePlay : MonoBehaviour {
 
     private readonly List<DraggableComponent> allPieces = new();
 
-    public static bool isGlobalLocked = false;
-
     /// <summary>
     /// 缓存外框面积.
     /// </summary>
     private double frameArea;
 
-    List<PolygonCollider2D> allPiecePolys = new();
+    /// <summary>
+    /// 所有碎片的多边形碰撞器.
+    /// </summary>
+    readonly List<PolygonCollider2D> allPiecePolys = new();
      
 
     Vector2[] framePoints;
 
     private Rect targetFrameRect;
 
+    //关卡数据.
+    public int currentLevel = 0;
+    private int sumLevel = 0;
+
+    /// <summary>
+    /// 当前关卡数据.
+    /// </summary>
     private LevelData currLevelData;
 
-    void Start() {
+    private readonly Dictionary<int, LevelData> levelDataDict = new();
+
+    void Start()
+    {
         DrawTargetFrame();
         LoadAndStartGame();
         ComputeFrameArea();
+        sumLevel = LevelPersistence.GetSumLevel();
+        GameEvents.InvokeEvent<int,int>(GameBasicEvent.UpdateLevel, currentLevel, sumLevel);
     }
 
-    void LoadAndStartGame()
+
+    /// <summary>
+    /// 获取关卡数据.
+    /// </summary>
+    /// <param name="level"></param>
+    /// <returns></returns>
+    private LevelData GetLevelData(int level)
     {
+        level = Mathf.Clamp(level, 1, sumLevel);
+        currentLevel = level;
+        if (levelDataDict.TryGetValue(level, out LevelData data))
+        {
+            return data;
+        }
+        Debug.Log($"GetLevelData: {level}");
+        string levelToLoad = $"Level_{level}";
         string path = Application.dataPath + "/LevelsData/" + levelToLoad + ".json";
-        if (!File.Exists(path)) return;
+        if (!File.Exists(path)) return null;
 
         string json = File.ReadAllText(path);
-        LevelData data = JsonUtility.FromJson<LevelData>(json);
+        data = JsonUtility.FromJson<LevelData>(json);
+        levelDataDict[level] = data;
+        return data;
+    }
+    
+    /// <summary>
+    /// 清除所有碎片.
+    /// </summary>
+    private void ClearAllPieces()
+    {
+        foreach (var piece in allPieces)
+        {
+            Destroy(piece.gameObject);
+        }
+        allPieces.Clear();
+        allPiecePolys.Clear();
+    }
+
+    /// <summary>
+    /// 加载并开始游戏.
+    /// </summary>
+    void LoadAndStartGame()
+    {
+        Debug.Log($"LoadAndStartGame: {currentLevel}");
+        LevelData data = GetLevelData(currentLevel);
+        if (data == null) return;
         int piecesCount = 0;
         currLevelData = data;
         
@@ -161,7 +218,10 @@ public class GamePlay : MonoBehaviour {
 
     }
 
-    public void CheckWinCondition3()
+    /// <summary>
+    /// 检查是否拼图完成(面积覆盖法).
+    /// </summary>
+    public void CheckFinish()
     {
         double fillArea = Clipper2CutterHelper.GetIntersectionArea(allPiecePolys, framePoints);
 
@@ -204,7 +264,6 @@ public class GamePlay : MonoBehaviour {
     // 在编辑器里画出托盘区域，方便调试
     void OnDrawGizmos()
     {
-
         // 画出打乱碎片的圆形区域
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(spawnCenter, spawnRadius);
@@ -214,18 +273,50 @@ public class GamePlay : MonoBehaviour {
 
     private void OnLook()
     {
-        Debug.Log("玩家看了一眼");
         UIManager.instance.OpenHintWindow(currLevelData);
+    }
+
+    private void Play()
+    {
+        GamePlay.isGlobalLocked = false;
+        ClearAllPieces();
+        LoadAndStartGame();
+        UIManager.instance.ClearHintWindow();
+    }
+    
+    private void PrevLevel()
+    {
+        currentLevel--;
+        currentLevel = Mathf.Clamp(currentLevel, 1, sumLevel);
+        GameEvents.InvokeEvent<int,int>(GameBasicEvent.UpdateLevel, currentLevel, sumLevel);
+        Play();
+    }
+
+    private void NextLevel()
+    {
+        currentLevel++;
+        currentLevel = Mathf.Clamp(currentLevel, 1, sumLevel);
+        GameEvents.InvokeEvent<int,int>(GameBasicEvent.UpdateLevel, currentLevel, sumLevel);
+        Play();
     }
 
     public void OnEnable()
     {
         GameEvents.RegisterBasicEvent(GameBasicEvent.Look, OnLook);
+        GameEvents.RegisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish);
+        GameEvents.RegisterBasicEvent(GameBasicEvent.Play, Play);
+        GameEvents.RegisterBasicEvent(GameBasicEvent.PrevLevel, PrevLevel);
+        GameEvents.RegisterBasicEvent(GameBasicEvent.NextLevel, NextLevel);
+
     }
 
     public void OnDisable()
     {
         GameEvents.UnregisterBasicEvent(GameBasicEvent.Look, OnLook);
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish);
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.Play, Play);
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.PrevLevel, PrevLevel);
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.NextLevel, NextLevel);
     }
     
     #endregion

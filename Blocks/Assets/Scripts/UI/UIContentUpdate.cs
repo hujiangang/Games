@@ -14,8 +14,8 @@ public class UIContentUpdate : MonoBehaviour
 
     public Button audioButton;
     public Button lookButton;
-    
-    
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -42,6 +42,29 @@ public class UIContentUpdate : MonoBehaviour
         {
             GameEvents.InvokeBasicEvent(GameBasicEvent.TurnAudio);
         });
-        
+    }
+    
+    public void OnEnable()
+    {
+        GameEvents.RegisterEvent<int,int>(GameBasicEvent.UpdateLevel, UpdateLevel);
+    }
+
+    public void OnDisable()
+    {
+        GameEvents.UnregisterEvent<int,int>(GameBasicEvent.UpdateLevel, UpdateLevel);
+    }
+
+    private void UpdateLevel(int level, int sumLevel)
+    {
+        progressSlider.value = (float)level / sumLevel;
+        progressText.text = $"{level}/{sumLevel}";
+    }
+
+    /// <summary>
+    /// 点击切换音频开关.
+    /// </summary>
+    private void ClickTurnAudio()
+    {
+
     }
 }

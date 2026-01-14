@@ -5,11 +5,13 @@ using UnityEngine;
 
 public enum GameBasicEvent
 {
+    CheckFinish, // 检查是否完成.
     Play, // 重新开始.
     Look, // 看一眼.
     PrevLevel, // 上一关.
     NextLevel, // 下一关.
     TurnAudio, // 开关声音.
+    UpdateLevel, // 更新关卡.
 }
 
 /// <summary>

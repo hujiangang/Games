@@ -56,4 +56,16 @@ public class UIManager : MonoBehaviour
             hintWindow.OpenHint(levelData);
         }
     }
+
+    /// <summary>
+    /// 清除提示窗口相关数据.
+    /// </summary>
+    public void ClearHintWindow()
+    {
+        HintWindow hintWindow = GetUIWindow(UIWindowType.HintWindow) as HintWindow;
+        if (hintWindow != null)
+        {
+            hintWindow.ClearPreviews();
+        }
+    }
 }

@@ -22,12 +22,19 @@ public static class LevelPersistence {
         return null;
     }
 
-    public static string[] GetAvailableLevels() {
+    public static string[] GetAvailableLevels()
+    {
         if (!Directory.Exists(FolderPath)) return new string[0];
         string[] files = Directory.GetFiles(FolderPath, "*.json");
-        for (int i = 0; i < files.Length; i++) {
+        for (int i = 0; i < files.Length; i++)
+        {
             files[i] = Path.GetFileNameWithoutExtension(files[i]);
         }
         return files;
+    }
+    
+    public static int GetSumLevel()
+    {
+        return GetAvailableLevels().Length;
     }
 }

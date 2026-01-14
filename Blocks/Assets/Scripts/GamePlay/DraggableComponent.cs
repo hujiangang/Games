@@ -81,7 +81,7 @@ public class DraggableComponent : MonoBehaviour
 
         if (TrySnapToAnyEdge())
         {
-            FindObjectOfType<GamePlay>().CheckWinCondition3();
+            GameEvents.InvokeBasicEvent(GameBasicEvent.CheckFinish);
             isSnapped = true;
         }
     }
