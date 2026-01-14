@@ -23,7 +23,7 @@ public class FloatingSquarePool
 
     private GameObject GenerateNewObject()
     {
-        GameObject go = new GameObject("BGSquare");
+        GameObject go = new("BGSquare");
         SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = squareSprite;
         return go;

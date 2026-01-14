@@ -1,8 +1,21 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using System.Collections;
 
-public class GamePlay : MonoBehaviour {
+
+/// <summary>
+/// 关卡解锁状态.
+/// </summary>
+public enum LevelUnlockStatus
+{
+    Locked,
+    Unlocked,
+    Current,
+}
+
+public class GamePlay : MonoBehaviour
+{
 
     /// <summary>
     /// 是否全局锁定，防止操作.
@@ -10,10 +23,10 @@ public class GamePlay : MonoBehaviour {
     public static bool isGlobalLocked = false;
 
     public Material pieceMaterial;
-    
+
     [Header("托盘区域设置")]
     public Vector3 spawnCenter = new(0, -5, 0);
-    public float spawnRadius = 2.5f;   
+    public float spawnRadius = 2.5f;
 
     private readonly List<DraggableComponent> allPieces = new();
 
@@ -26,7 +39,7 @@ public class GamePlay : MonoBehaviour {
     /// 所有碎片的多边形碰撞器.
     /// </summary>
     readonly List<PolygonCollider2D> allPiecePolys = new();
-     
+
 
     Vector2[] framePoints;
 
@@ -37,21 +50,52 @@ public class GamePlay : MonoBehaviour {
     private int sumLevel = 0;
 
     /// <summary>
+    /// 选择关卡.
+    /// </summary>
+    private int selectLevel = 0;
+
+    /// <summary>
     /// 当前关卡数据.
     /// </summary>
     private LevelData currLevelData;
 
     private readonly Dictionary<int, LevelData> levelDataDict = new();
 
+    /// <summary>
+    /// 是否静音.
+    /// </summary>
+    private bool IsMute = false;
+
+    /// <summary>
+    /// 是否开始操作.
+    /// </summary>
+    public static bool IsStartOperation = false;
+
+
+
+    void Awake()
+    {
+        sumLevel = LevelPersistence.GetSumLevel();
+        UserDataManager.Load(sumLevel);
+        currentLevel = UserDataManager.GetCurrentLevel();
+        selectLevel = currentLevel;
+    }
+
     void Start()
     {
         DrawTargetFrame();
         LoadAndStartGame();
         ComputeFrameArea();
-        sumLevel = LevelPersistence.GetSumLevel();
-        GameEvents.InvokeEvent<int,int>(GameBasicEvent.UpdateLevel, currentLevel, sumLevel);
+
+        StartCoroutine(DelayInit());
     }
 
+
+    IEnumerator DelayInit()
+    {
+        yield return new WaitForSeconds(0.5f);
+        GameEvents.InvokeEvent(GameBasicEvent.UpdateLevel, currentLevel, sumLevel, LevelUnlockStatus.Current);
+    }
 
     /// <summary>
     /// 获取关卡数据.
@@ -61,7 +105,6 @@ public class GamePlay : MonoBehaviour {
     private LevelData GetLevelData(int level)
     {
         level = Mathf.Clamp(level, 1, sumLevel);
-        currentLevel = level;
         if (levelDataDict.TryGetValue(level, out LevelData data))
         {
             return data;
@@ -76,7 +119,7 @@ public class GamePlay : MonoBehaviour {
         levelDataDict[level] = data;
         return data;
     }
-    
+
     /// <summary>
     /// 清除所有碎片.
     /// </summary>
@@ -100,7 +143,7 @@ public class GamePlay : MonoBehaviour {
         if (data == null) return;
         int piecesCount = 0;
         currLevelData = data;
-        
+
         Vector3 framePos = GameObject.Find("TargetFrame").transform.position;
         float len = CutterManager.cutterLength;
         targetFrameRect = new(framePos.x - len, framePos.y - len, len * 2, len * 2);
@@ -123,7 +166,7 @@ public class GamePlay : MonoBehaviour {
 
             // 2. 添加游戏逻辑
             DraggableComponent gp = go.AddComponent<DraggableComponent>();
-            gp.Init(targetFrameRect, pp.transform.position + framePos, framePos,sumPieceCount + 1);
+            gp.Init(targetFrameRect, pp.transform.position + framePos, framePos, sumPieceCount + 1);
 
             //以 spawnCenter 为中心，在 spawnRadius 半径内随机取点.
             float minRadius = 0.8f; // 中间留空
@@ -135,9 +178,9 @@ public class GamePlay : MonoBehaviour {
             Vector3 startPos = endPos + Vector3.up * dropHeight;
             go.transform.position = startPos;
 
-             // 3. 开始掉落
-             FallAndEnableDrag fader = go.AddComponent<FallAndEnableDrag>();
-             fader.BeginFall(startPos, endPos);
+            // 3. 开始掉落
+            FallAndEnableDrag fader = go.AddComponent<FallAndEnableDrag>();
+            fader.BeginFall(startPos, endPos);
 
             // 随机旋转增加难度(不需要旋转,本身不能旋转的).
             //go.transform.rotation = Quaternion.Euler(0, 0, Random.Range(-30, 30));
@@ -231,6 +274,8 @@ public class GamePlay : MonoBehaviour {
         if (ratio > 0.95f)
         {
             GamePlay.isGlobalLocked = true;
+            GameEvents.InvokeBasicEvent(GameBasicEvent.CompleteLevel);
+            CompleteLevel();
             Debug.Log("恭喜！拼图完成！");
         }
 
@@ -271,6 +316,13 @@ public class GamePlay : MonoBehaviour {
 
     #region Event_Register_Handler
 
+
+    private void CompleteLevel()
+    {
+        currentLevel++;
+        UserDataManager.CompleteLevel(currentLevel);
+    }
+
     private void OnLook()
     {
         UIManager.instance.OpenHintWindow(currLevelData);
@@ -278,35 +330,91 @@ public class GamePlay : MonoBehaviour {
 
     private void Play()
     {
-        GamePlay.isGlobalLocked = false;
         ClearAllPieces();
-        LoadAndStartGame();
-        UIManager.instance.ClearHintWindow();
+        if (selectLevel <= currentLevel)
+        {
+            GamePlay.isGlobalLocked = false;
+            LoadAndStartGame();
+            UIManager.instance.ClearHintWindow();
+
+            GameEvents.InvokeBasicEvent(GameBasicEvent.Play);
+        }
     }
-    
+
     private void PrevLevel()
     {
-        currentLevel--;
-        currentLevel = Mathf.Clamp(currentLevel, 1, sumLevel);
-        GameEvents.InvokeEvent<int,int>(GameBasicEvent.UpdateLevel, currentLevel, sumLevel);
-        Play();
+        GamePlay.IsStartOperation = false;
+        selectLevel--;
+        selectLevel = Mathf.Clamp(selectLevel, 1, sumLevel);
+
+        LevelUnlockStatus levelUnlockStatus = LevelUnlockStatus.Current;
+        if (selectLevel > currentLevel)
+        {
+            levelUnlockStatus = LevelUnlockStatus.Locked;
+        }
+        else if (selectLevel < currentLevel)
+        {
+            levelUnlockStatus = LevelUnlockStatus.Unlocked;
+        }
+        GameEvents.InvokeEvent(GameBasicEvent.UpdateLevel, selectLevel, sumLevel, levelUnlockStatus);
+
+        if (selectLevel <= currentLevel)
+        {
+            currentLevel = selectLevel;
+            Play();    
+        }
+        
     }
 
     private void NextLevel()
     {
-        currentLevel++;
-        currentLevel = Mathf.Clamp(currentLevel, 1, sumLevel);
-        GameEvents.InvokeEvent<int,int>(GameBasicEvent.UpdateLevel, currentLevel, sumLevel);
-        Play();
+        GamePlay.IsStartOperation = false;
+        selectLevel++;
+        selectLevel = Mathf.Clamp(selectLevel, 1, sumLevel);
+        LevelUnlockStatus levelUnlockStatus = LevelUnlockStatus.Current;
+        if (selectLevel > currentLevel)
+        {
+            levelUnlockStatus = LevelUnlockStatus.Locked;
+        }
+        else if (selectLevel < currentLevel)
+        {
+            levelUnlockStatus = LevelUnlockStatus.Unlocked;
+        }
+        GameEvents.InvokeEvent(GameBasicEvent.UpdateLevel, selectLevel, sumLevel, levelUnlockStatus);
+        if (selectLevel <= currentLevel)
+        {
+            currentLevel = selectLevel;
+            Play();    
+        }
+    }
+
+    /// <summary>
+    /// 切换音频开关.
+    /// </summary>
+    private void TurnAudio()
+    {
+        IsMute = !IsMute;
+        GameEvents.InvokeEvent<bool>(GameBasicEvent.UpdateAudio, IsMute);
+    }
+
+    /// <summary>
+    /// 开始游戏操作.
+    /// </summary>
+    private void StartGameOprate()
+    {
+        selectLevel = currentLevel;
+        GameEvents.InvokeEvent(GameBasicEvent.UpdateLevel, selectLevel, sumLevel, LevelUnlockStatus.Current);
+
     }
 
     public void OnEnable()
     {
         GameEvents.RegisterBasicEvent(GameBasicEvent.Look, OnLook);
         GameEvents.RegisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish);
-        GameEvents.RegisterBasicEvent(GameBasicEvent.Play, Play);
         GameEvents.RegisterBasicEvent(GameBasicEvent.PrevLevel, PrevLevel);
         GameEvents.RegisterBasicEvent(GameBasicEvent.NextLevel, NextLevel);
+        GameEvents.RegisterBasicEvent(GameBasicEvent.TurnAudio, TurnAudio);
+        GameEvents.RegisterBasicEvent(GameBasicEvent.StartGameOprate, StartGameOprate);
 
     }
 
@@ -314,10 +422,11 @@ public class GamePlay : MonoBehaviour {
     {
         GameEvents.UnregisterBasicEvent(GameBasicEvent.Look, OnLook);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish);
-        GameEvents.UnregisterBasicEvent(GameBasicEvent.Play, Play);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.PrevLevel, PrevLevel);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.NextLevel, NextLevel);
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.TurnAudio, TurnAudio);
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.StartGameOprate, StartGameOprate);
     }
-    
+
     #endregion
 }

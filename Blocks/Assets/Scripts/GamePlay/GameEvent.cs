@@ -12,6 +12,10 @@ public enum GameBasicEvent
     NextLevel, // 下一关.
     TurnAudio, // 开关声音.
     UpdateLevel, // 更新关卡.
+    CompleteLevel, // 完成一关.
+    UpdateAudio, // 更新音频开关.
+
+    StartGameOprate, // 开始游戏操作.
 }
 
 /// <summary>

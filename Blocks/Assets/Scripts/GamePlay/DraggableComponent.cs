@@ -57,6 +57,13 @@ public class DraggableComponent : MonoBehaviour
     public void StartDragging(Vector2 worldMousePos)
     {
         if (GamePlay.isGlobalLocked) return;
+
+        if (!GamePlay.IsStartOperation)
+        {
+            GamePlay.IsStartOperation = true;
+            GameEvents.InvokeBasicEvent(GameBasicEvent.StartGameOprate);
+        }
+
         isSnapped = false;
 
         // 视觉提升

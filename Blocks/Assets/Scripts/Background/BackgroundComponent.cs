@@ -13,7 +13,7 @@ public class BackgroundComponent : MonoBehaviour
     [Header("随机属性范围")]
     public float minSpeed = 0.5f, maxSpeed = 1.5f;
     public float minRot = 30f, maxRot = 100f;
-    public float minSize = 0.2f, maxSize = 0.6f;
+    public float minSize = 0.2f, maxSize = 1f;
     public Color[] possibleColors;    // 在面板里设置几种背景颜色
 
     private float timer;
@@ -44,7 +44,7 @@ public class BackgroundComponent : MonoBehaviour
         // 1. 创建物体
         GameObject go = pool.Get();
 
-        go.transform.position = new Vector3(Random.Range(minX, maxX), spawnY, 0);
+        go.transform.position = new Vector3(Random.Range(minX, maxX), spawnY, 10f);
 
         if (!go.TryGetComponent<FloatingSquare>(out var fs))
         {

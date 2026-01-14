@@ -74,6 +74,7 @@
     <Compile Include="Assets\Scripts\LevelEdior\LineDrawer.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelEditorController.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelPersistence.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\UserDataManager.cs" />
     <Compile Include="Assets\Scripts\GamePlay\GameEvent.cs" />
     <Compile Include="Assets\Scripts\Background\FloatingSquarePool.cs" />
     <Compile Include="Assets\Scripts\GamePlay\GamePlay.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="Assets\Scripts\Background\BackgroundComponent.cs" />
     <Compile Include="Assets\Scripts\LevelEdior\Cutter.cs" />
     <Compile Include="Assets\Scripts\UI\UIManager.cs" />
+    <Compile Include="Assets\Scripts\UI\Effect\KeepTilting.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.Triangulation.cs" />
     <Compile Include="Assets\Scripts\LevelEdior\Clipper2CutterHelper.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.RectClip.cs" />
