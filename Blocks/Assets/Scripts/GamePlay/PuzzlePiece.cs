@@ -40,12 +40,12 @@ public class PuzzlePiece : MonoBehaviour {
         UpdateMesh();
     }
 
-    public void Init_levelEdit(List<Vector2> newPoints, Material mat)
+    public void Init_levelEdit(List<Vector2> newPoints, Material mat, Color color)
     {
         this.points = newPoints;
         GetComponent<MeshRenderer>().material = mat;
         // 给个随机颜色方便区分
-        pieceColor = new Color(Random.value, Random.value, Random.value);
+        pieceColor = color;
         GetComponent<MeshRenderer>().material.color = pieceColor;
         GetComponent<MeshRenderer>().sortingOrder = 2;
         UpdateMesh();

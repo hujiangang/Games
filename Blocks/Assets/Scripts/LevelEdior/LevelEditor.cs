@@ -14,8 +14,9 @@ public class LevelEditor : MonoBehaviour {
     }
 
     // --- 功能 1：新建关卡 ---
-    public void CreateNewLevel() {
-       
+    public void CreateNewLevel()
+    {
+
         Cutter cutter = FindObjectOfType<Cutter>();
         foreach (var p in cutter.activePieces) Destroy(p.gameObject);
         cutter.activePieces.Clear();
@@ -26,6 +27,21 @@ public class LevelEditor : MonoBehaviour {
         sumLevel++;
         currentLevelName = "Level_" + sumLevel;
         levelNameText.text = currentLevelName;
+    }
+
+    public void Reset()
+    {
+        Cutter cutter = FindObjectOfType<Cutter>();
+        foreach (var p in cutter.activePieces) Destroy(p.gameObject);
+        cutter.activePieces.Clear();
+        cutter.CreateInitialSquare();
+    }
+    
+    public void SetCurrentLevelName(int level)
+    {
+        currentLevelName = "Level_" + level;
+        levelNameText.text = currentLevelName;
+        Reset();
     }
 
     // --- 功能 2：保存当前关卡 ---

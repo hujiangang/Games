@@ -20,7 +20,7 @@ public class Cutter : MonoBehaviour
         {
             new Vector2(-L, L), new Vector2(L, L), new Vector2(L, -L), new Vector2(-L, -L)
         };
-        activePieces.Add(CreateNewPiece(basePoints));
+        activePieces.Add(CreateNewPiece(basePoints, true));
     }
 
     public void ExecuteAllCuts(List<List<Vector2>> allPaths)
@@ -71,16 +71,21 @@ public class Cutter : MonoBehaviour
         GameObject go = new GameObject("Piece");
         go.transform.position = spawnPos;
         PuzzlePiece pp = go.AddComponent<PuzzlePiece>();
-        pp.Init_levelEdit(pts, pieceMaterial);
+        pp.Init_levelEdit(pts, pieceMaterial, new Color(Random.value, Random.value,Random.value));
         return pp;
     }
 
-    PuzzlePiece CreateNewPiece(List<Vector2> pts)
+    PuzzlePiece CreateNewPiece(List<Vector2> pts, bool initFrame = false)
     {
         GameObject go = new GameObject("Piece");
         PuzzlePiece pp = go.AddComponent<PuzzlePiece>();
         // 注意：Init 内部必须包含“重置轴心点”的逻辑，否则位置会偏
-        pp.Init_levelEdit(pts, pieceMaterial);
+        Color color = new Color(Random.value, Random.value, Random.value);
+        if (initFrame)
+        {
+            color = new Color(0.2f, 0.2f, 0.2f);
+        }
+        pp.Init_levelEdit(pts, pieceMaterial,color);
         return pp;
     }
 }

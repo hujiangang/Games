@@ -111,7 +111,7 @@ public class CutterManager : MonoBehaviour {
     public PuzzlePiece CreatePiece(List<Vector2> pts) {
         GameObject go = new GameObject("Piece");
         PuzzlePiece pp = go.AddComponent<PuzzlePiece>();
-        pp.Init_levelEdit(pts, pieceMaterial);
+        pp.Init_levelEdit(pts, pieceMaterial,new Color(Random.value, Random.value,Random.value));
         return pp;
     }
 }

@@ -2870,7 +2870,7 @@ MonoBehaviour:
   pieceMaterial: {fileID: 2100000, guid: 2c396c7a9fa111041ad7ff3bb1887dcb, type: 2}
   spawnCenter: {x: 0, y: -2.06, z: 0}
   spawnRadius: 1.2
-  currentLevel: 0
+  currentLevel: 3
 --- !u!114 &1737576504
 MonoBehaviour:
   m_ObjectHideFlags: 0
