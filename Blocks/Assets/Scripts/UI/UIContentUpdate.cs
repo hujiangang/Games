@@ -67,7 +67,7 @@ public class UIContentUpdate : MonoBehaviour
         GameEvents.RegisterEvent<int, int, LevelUnlockStatus>(GameBasicEvent.UpdateLevel, UpdateLevel);
         GameEvents.RegisterBasicEvent(GameBasicEvent.CompleteLevel, CompleteLevel);
         GameEvents.RegisterEvent<bool>(GameBasicEvent.UpdateAudio, UpdateAudio);
-        GameEvents.RegisterBasicEvent(GameBasicEvent.Play, Play);
+        GameEvents.RegisterBasicEvent(GameBasicEvent.ResetUI, ResetUI);
     }
 
     public void OnDisable()
@@ -75,12 +75,11 @@ public class UIContentUpdate : MonoBehaviour
         GameEvents.UnregisterEvent<int, int, LevelUnlockStatus>(GameBasicEvent.UpdateLevel, UpdateLevel);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.CompleteLevel, CompleteLevel);
         GameEvents.UnregisterEvent<bool>(GameBasicEvent.UpdateAudio, UpdateAudio);
-        GameEvents.UnregisterBasicEvent(GameBasicEvent.Play, Play);
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.ResetUI, ResetUI);
     }
 
-    private void Play()
+    private void ResetUI()
     {
-        Debug.Log("Play");
         finishPanel.SetActive(false);
     }
 

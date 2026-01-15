@@ -98,6 +98,12 @@ public static class UserDataManager
             }
 
             userData = data;
+
+            // 校正.
+            if (userData.currentLevel > userData.levelUnlockStatus.Count)
+            {
+                userData.currentLevel = userData.levelUnlockStatus.Count;
+            }
         }
         catch (Exception e)
         {
@@ -158,18 +164,36 @@ public static class UserDataManager
     /// 完成关卡.
     /// </summary>
     /// <param name="level"></param>
-    public static void CompleteLevel(int level)
+    public static bool CompleteLevel(int level)
     {
         Debug.Log($"CompleteLevel: {level}");
         if (level < 0 || level > userData.levelUnlockStatus.Count)
         {
             Debug.LogError("无效的关卡号");
-            return;
+            return false;
         }
-        userData.currentLevel = level;
+
+        int nextLevel = level + 1;
+        bool saveFlag = false;
+        if (nextLevel > userData.currentLevel &&
+            nextLevel <= userData.levelUnlockStatus.Count)
+        {
+            userData.currentLevel = nextLevel;
+            saveFlag = true;
+        }
+
         int index = level - 1;
-        userData.levelUnlockStatus[index] = true;
-        Save(userData);
+        if (!userData.levelUnlockStatus[index])
+        {
+            userData.levelUnlockStatus[index] = true;
+            saveFlag = true;
+        }
+
+        if (saveFlag)
+        {
+            Save(userData);
+        }
+        return true;
     }
 
 

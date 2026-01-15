@@ -16,6 +16,8 @@ public enum GameBasicEvent
     UpdateAudio, // 更新音频开关.
 
     StartGameOprate, // 开始游戏操作.
+
+    ResetUI,    // 重置UI相关.
 }
 
 /// <summary>

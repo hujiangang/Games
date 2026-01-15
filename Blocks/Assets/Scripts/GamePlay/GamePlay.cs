@@ -319,7 +319,6 @@ public class GamePlay : MonoBehaviour
 
     private void CompleteLevel()
     {
-        currentLevel++;
         UserDataManager.CompleteLevel(currentLevel);
     }
 
@@ -331,14 +330,11 @@ public class GamePlay : MonoBehaviour
     private void Play()
     {
         ClearAllPieces();
-        if (selectLevel <= currentLevel)
-        {
-            GamePlay.isGlobalLocked = false;
-            LoadAndStartGame();
-            UIManager.instance.ClearHintWindow();
-
-            GameEvents.InvokeBasicEvent(GameBasicEvent.Play);
-        }
+        currentLevel = selectLevel;
+        GamePlay.isGlobalLocked = false;
+        LoadAndStartGame();
+        UIManager.instance.ClearHintWindow();
+        GameEvents.InvokeBasicEvent(GameBasicEvent.ResetUI);
     }
 
     private void PrevLevel()
@@ -348,17 +344,18 @@ public class GamePlay : MonoBehaviour
         selectLevel = Mathf.Clamp(selectLevel, 1, sumLevel);
 
         LevelUnlockStatus levelUnlockStatus = LevelUnlockStatus.Current;
-        if (selectLevel > currentLevel)
+        if (selectLevel > UserDataManager.GetCurrentLevel())
         {
             levelUnlockStatus = LevelUnlockStatus.Locked;
         }
-        else if (selectLevel < currentLevel)
+        else if (selectLevel < UserDataManager.GetCurrentLevel())
         {
             levelUnlockStatus = LevelUnlockStatus.Unlocked;
         }
+        Debug.Log($"Next Level : select {selectLevel}, status : {levelUnlockStatus.ToString()}");
         GameEvents.InvokeEvent(GameBasicEvent.UpdateLevel, selectLevel, sumLevel, levelUnlockStatus);
 
-        if (selectLevel <= currentLevel)
+        if (selectLevel <= UserDataManager.GetCurrentLevel())
         {
             currentLevel = selectLevel;
             Play();    
@@ -372,16 +369,17 @@ public class GamePlay : MonoBehaviour
         selectLevel++;
         selectLevel = Mathf.Clamp(selectLevel, 1, sumLevel);
         LevelUnlockStatus levelUnlockStatus = LevelUnlockStatus.Current;
-        if (selectLevel > currentLevel)
+        if (selectLevel > UserDataManager.GetCurrentLevel())
         {
             levelUnlockStatus = LevelUnlockStatus.Locked;
         }
-        else if (selectLevel < currentLevel)
+        else if (selectLevel < UserDataManager.GetCurrentLevel())
         {
             levelUnlockStatus = LevelUnlockStatus.Unlocked;
         }
+        Debug.Log($"Next Level : select {selectLevel}, status : {levelUnlockStatus.ToString()}");
         GameEvents.InvokeEvent(GameBasicEvent.UpdateLevel, selectLevel, sumLevel, levelUnlockStatus);
-        if (selectLevel <= currentLevel)
+        if (selectLevel <= UserDataManager.GetCurrentLevel())
         {
             currentLevel = selectLevel;
             Play();    
@@ -415,6 +413,7 @@ public class GamePlay : MonoBehaviour
         GameEvents.RegisterBasicEvent(GameBasicEvent.NextLevel, NextLevel);
         GameEvents.RegisterBasicEvent(GameBasicEvent.TurnAudio, TurnAudio);
         GameEvents.RegisterBasicEvent(GameBasicEvent.StartGameOprate, StartGameOprate);
+        GameEvents.RegisterBasicEvent(GameBasicEvent.Play, Play);
 
     }
 
@@ -426,6 +425,7 @@ public class GamePlay : MonoBehaviour
         GameEvents.UnregisterBasicEvent(GameBasicEvent.NextLevel, NextLevel);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.TurnAudio, TurnAudio);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.StartGameOprate, StartGameOprate);
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.Play, Play);
     }
 
     #endregion
