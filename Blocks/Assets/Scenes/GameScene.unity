@@ -859,8 +859,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 3fb6e984792498349abef7358be6605e, type: 3}
   - {fileID: 21300000, guid: 74871d8dc4e036d469cca123323eca37, type: 3}
   lockSprites:
-  - {fileID: 21300000, guid: a2eaa7fdad57e0b479c4f03ffd5d20ae, type: 3}
   - {fileID: 21300000, guid: 84c9bc5f1aba1c54da85311f473dfa39, type: 3}
+  - {fileID: 21300000, guid: a2eaa7fdad57e0b479c4f03ffd5d20ae, type: 3}
   - {fileID: 21300000, guid: f6c04d53b2d8778419158872cb3d252c, type: 3}
 --- !u!1 &470899721
 GameObject:
