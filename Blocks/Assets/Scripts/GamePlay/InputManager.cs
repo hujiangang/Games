@@ -17,7 +17,7 @@ public class InputManager : MonoBehaviour
         bool inputStarted = false;
         bool inputHeld = false;
         bool inputEnded = false;
-        Vector2 screenPosition = Vector2.zero;
+        Vector2 screenPosition;
 
         if (Input.touchCount > 0) // 触摸输入
         {

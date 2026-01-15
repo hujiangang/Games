@@ -231,7 +231,7 @@ public class GamePlay : MonoBehaviour
     /// 检查是否拼图完成
     /// 在拼图区域内均匀采样点，检测是否被碎片覆盖，若覆盖率达到 98% 以上即判定为完成.
     /// </summary>
-    public void CheckWinCondition2()
+    public void CheckFinish2()
     {
         // 1. 采样检测点 (比如每 0.5 一个点)
         int pointsFilled = 0;
