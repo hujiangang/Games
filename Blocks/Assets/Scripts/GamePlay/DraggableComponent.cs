@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 /// <summary>
 /// 拖拽功能.
@@ -19,7 +18,7 @@ public class DraggableComponent : MonoBehaviour
     /// <summary>
     /// 排序层级.
     /// </summary>
-    private static int originalOrder = 2;
+    public static int globalTopOrder = 2;
 
     /// <summary>
     /// 吸附灵敏度.
@@ -43,12 +42,11 @@ public class DraggableComponent : MonoBehaviour
         puzzlePiece = GetComponent<PuzzlePiece>();
     }
 
-    public void Init(Rect rect, Vector3 correctPos, Vector3 framePos, int sortingOrder)
+    public void Init(Rect rect, Vector3 correctPos, Vector3 framePos)
     {
         squareBounds = rect;
         correctWorldPos = correctPos;
         this.framePos = framePos;
-        originalOrder = sortingOrder;
     }
 
 
@@ -67,8 +65,8 @@ public class DraggableComponent : MonoBehaviour
         isSnapped = false;
 
         // 视觉提升
-        originalOrder++;
-        m_Renderer.sortingOrder = originalOrder;
+        globalTopOrder++;
+        m_Renderer.sortingOrder = globalTopOrder;
 
         // 计算偏移量
         offset = (Vector2)transform.position - worldMousePos;

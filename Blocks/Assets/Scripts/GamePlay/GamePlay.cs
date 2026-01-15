@@ -149,6 +149,8 @@ public class GamePlay : MonoBehaviour
         targetFrameRect = new(framePos.x - len, framePos.y - len, len * 2, len * 2);
         int sumPieceCount = data.pieces.Count;
 
+        DraggableComponent.globalTopOrder = sumPieceCount + 1;
+
         foreach (var pd in data.pieces)
         {
             // 1. 创建碎片物体
@@ -166,7 +168,7 @@ public class GamePlay : MonoBehaviour
 
             // 2. 添加游戏逻辑
             DraggableComponent gp = go.AddComponent<DraggableComponent>();
-            gp.Init(targetFrameRect, pp.transform.position + framePos, framePos, sumPieceCount + 1);
+            gp.Init(targetFrameRect, pp.transform.position + framePos, framePos);
 
             //以 spawnCenter 为中心，在 spawnRadius 半径内随机取点.
             float minRadius = 0.8f; // 中间留空

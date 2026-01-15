@@ -38,7 +38,7 @@ public class InputManager : MonoBehaviour
         // --- 2. 处理逻辑 ---
 
         // A. 按下瞬间：寻找最高层级的碎片
-        if (inputStarted)
+        if (inputStarted && currentTarget == null)
         {
             Vector2 worldPos = mainCamera.ScreenToWorldPoint(screenPosition);
             RaycastHit2D[] hits = Physics2D.RaycastAll(worldPos, Vector2.zero);
