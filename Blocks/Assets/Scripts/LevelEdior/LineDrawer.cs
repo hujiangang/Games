@@ -149,6 +149,7 @@ public class LineDrawer : MonoBehaviour
         points.Clear();
         isEditing = false;
         linePreview.positionCount = 0;
+        allPaths.Clear();
     }
 
     public void ClearLinePrefab()
@@ -172,7 +173,6 @@ public class LineDrawer : MonoBehaviour
         {
             cutter.ExecuteAllCuts(allPaths);
         }
-
         ClearPath();
         ClearLinePrefab();
     }

@@ -61,24 +61,71 @@ public static class Clipper2CutterHelper
     public static double GetIntersectionArea(List<PolygonCollider2D> piecePolys, Vector2[] framePoints)
     {
         // 1. 设置主体
-        Paths64 subjects  = new (piecePolys.Count);
+        Paths64 subjects = new(piecePolys.Count);
         foreach (var poly in piecePolys)
             subjects.Add(Path64FromPoly(poly));
 
         // 2. 把目标框做成 clips
         Path64 framePath = new();
         foreach (var v in framePoints) framePath.Add(new Point64(v.x, v.y));
-        Paths64 clips = new Paths64(1){ framePath };
+        Paths64 clips = new Paths64(1) { framePath };
 
         // 3. 交集
         Paths64 intersect = Clipper.Intersect(subjects, clips, FillRule.NonZero);
 
-       // 4. 面积累加
+        // 4. 面积累加
         double area = 0;
         foreach (var path in intersect)
             area += Math.Abs(Clipper.Area(path));
 
         return area;
+    }
+    
+    public static double GetIntersectionAreaEx(List<PolygonCollider2D> piecePolys, Vector2[] framePoints)
+    {
+        // 1. 定义缩放倍率 (Clipper64 必须进行缩放以保留小数位精度)
+        const double Scale = 1000.0;
+        
+        // 2. 将所有碎片顶点放大并加入 subjects
+        Paths64 subjects = new Paths64(piecePolys.Count);
+        foreach (var poly in piecePolys)
+        {
+            Path64 path = new Path64();
+            foreach (var v in poly.points)
+            {
+                // 将本地坐标转为世界坐标，并放大
+                Vector2 worldV = poly.transform.TransformPoint(v);
+                path.Add(new Point64(worldV.x * Scale, worldV.y * Scale));
+            }
+            subjects.Add(path);
+        }
+
+        // 3. 【关键步骤】将所有碎片进行“并集”运算，合并成一个整体，并微量膨胀
+        // 膨胀 0.02 单位（即 0.02 * Scale 个整数单位）来填补切割缝隙
+        Paths64 combinedPieces = Clipper.Union(subjects, FillRule.NonZero);
+        // 这里的 0.02 应该略大于你的 cutWidth
+        Paths64 healedPieces = Clipper.InflatePaths(combinedPieces, 0.02 * Scale, JoinType.Miter, EndType.Polygon);
+
+        // 4. 处理目标框坐标并放大
+        Path64 framePath = new Path64();
+        foreach (var v in framePoints) 
+        {
+            framePath.Add(new Point64(v.x * Scale, v.y * Scale));
+        }
+        Paths64 clips = new Paths64(1) { framePath };
+
+        // 5. 计算【填补后的碎片整体】与【目标框】的交集
+        Paths64 intersect = Clipper.Intersect(healedPieces, clips, FillRule.NonZero);
+
+        // 6. 面积累加并除以缩放倍率的平方
+        double totalScaledArea = 0;
+        foreach (var path in intersect)
+        {
+            totalScaledArea += Math.Abs(Clipper.Area(path));
+        }
+
+        // 最终面积需要还原缩放：因为面积是宽*高，所以要除以 Scale 的平方
+        return totalScaledArea / (Scale * Scale);
     }
 
 

@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 using System.Collections;
+using Clipper2Lib;
 
 
 /// <summary>
@@ -157,7 +158,8 @@ public class GamePlay : MonoBehaviour
             piecesCount++;
             GameObject go = new($"GamePiece_{piecesCount}")
             {
-                tag = "PuzzlePiece"
+                tag = "PuzzlePiece",
+                layer = LayerMask.NameToLayer("PuzzlePiece"),
             };
             // 使用你之前的脚本生成 Mesh.
             PuzzlePiece pp = go.AddComponent<PuzzlePiece>();
@@ -263,25 +265,139 @@ public class GamePlay : MonoBehaviour
 
     }
 
+
+    private void DoVictory()
+    {
+        GamePlay.isGlobalLocked = true;
+        GameEvents.InvokeBasicEvent(GameBasicEvent.CompleteLevel);
+        CompleteLevel();
+        Debug.Log("恭喜！拼图完成！");
+    }
+
     /// <summary>
     /// 检查是否拼图完成(面积覆盖法).
     /// </summary>
     public void CheckFinish()
     {
-        double fillArea = Clipper2CutterHelper.GetIntersectionArea(allPiecePolys, framePoints);
+        double fillArea = Clipper2CutterHelper.GetIntersectionAreaEx(allPiecePolys, framePoints);
 
         double ratio = fillArea / frameArea;
 
         // 2. 检查是否填充超过 95%.
         if (ratio > 0.95f)
         {
-            GamePlay.isGlobalLocked = true;
-            GameEvents.InvokeBasicEvent(GameBasicEvent.CompleteLevel);
-            CompleteLevel();
-            Debug.Log("恭喜！拼图完成！");
+            DoVictory();
+        }
+        Debug.Log($"填充区域面积: {fillArea}, 目标区域面积: {frameArea}, 填充比例: {ratio}");
+    }
+
+    public void CheckFinish3()
+    {
+        const double Scale = 1000.0;
+        Paths64 allSnappedPaths = new();
+
+        // 1. 收集所有【已吸附】碎片的顶点
+        DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
+        foreach (var p in pieces)
+        {
+            if (p.isSnapped)
+            {
+                Path64 path = new();
+                // 必须使用变换后的世界坐标
+                foreach (var v in p.GetComponent<PuzzlePiece>().points)
+                {
+                    Vector2 wPos = p.transform.TransformPoint(v);
+                    path.Add(new Point64(wPos.x * Scale, wPos.y * Scale));
+                }
+                allSnappedPaths.Add(path);
+            }
         }
 
-        Debug.Log($"填充区域面积: {fillArea}, 目标区域面积: {frameArea}, 填充比例: {ratio}");
+        Debug.Log($"已吸附碎片数量: {allSnappedPaths.Count}, 总碎片数量: {pieces.Length}");
+
+        if (allSnappedPaths.Count < pieces.Length) return; // 数量都不够，肯定没完
+
+        // 2. 【核心】执行 Union（并集）运算
+        // 这会将重叠的部分合并，产生一个或多个不重叠的大多边形
+        Paths64 unionResult = Clipper.Union(allSnappedPaths, FillRule.NonZero);
+
+        // 3. 计算并集后的总面积
+        double currentArea = 0;
+        foreach (var path in unionResult)
+        {
+            currentArea += System.Math.Abs(Clipper.Area(path));
+        }
+        currentArea /= (Scale * Scale); // 还原缩放
+
+        // 4. 与目标框面积对比 (frameArea 是你初始正方形的面积，比如 36)
+        double ratio = currentArea / frameArea;
+
+        // 调试：观察合并后的面积
+        Debug.Log($"合并后总面积: {currentArea}, 目标面积: {frameArea}, 比例: {ratio:F4}, 并集路径数量: {unionResult.Count}");
+
+        // 5. 判定胜利：
+        // 因为是 Union 后的面积，绝对不会超过原始总面积（除非碎片跑到了正方形外面）
+        // 所以这里的 ratio 如果在 0.99 到 1.0 之间，就是完美填充
+        if (ratio >= 0.95f && ratio <= 1.01f) 
+        {
+            // 还要加个保险：并集后的结果必须只有一个路径（说明中间没缝，也没散块）
+            if (unionResult.Count == 1)
+            {
+                DoVictory();
+            }
+        }
+    }
+
+    public void CheckFinish4()
+    {
+        const double Scale = 1000.0;
+        DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
+        
+        // 1. 基础检查：必须所有碎片都已吸附
+        int snappedCount = 0;
+        Paths64 allPaths = new Paths64();
+        foreach (var p in pieces) {
+            if (p.isSnapped) {
+                snappedCount++;
+                // 获取碎片当前世界坐标的路径
+                allPaths.Add(p.GetWorldPath(Scale)); 
+            }
+        }
+
+        if (snappedCount < pieces.Length) return; 
+
+        // 2. 执行并集（Union）并加大膨胀力度进行“缝合”
+        // 这里的 0.05 * Scale 是关键。如果你的黑色缝隙很明显，这个值要稍微大一点
+        // 它会把碎片边缘向外扩，强制让相邻碎片重叠，从而合并成一个 Count
+        Paths64 combined = Clipper.Union(allPaths, FillRule.NonZero);
+        Paths64 healed = Clipper.InflatePaths(combined, 0.015 * Scale, JoinType.Miter, EndType.Polygon);
+        
+        // 3. 计算合并后的总面积
+        double totalFillArea = 0;
+        double maxIslandArea = 0; // 记录最大的那块碎片的面积
+
+        foreach (var path in healed) {
+            double a = System.Math.Abs(Clipper.Area(path));
+            totalFillArea += a;
+            if (a > maxIslandArea) maxIslandArea = a;
+        }
+        
+        totalFillArea /= (Scale * Scale);
+        maxIslandArea /= (Scale * Scale);
+
+        double totalRatio = totalFillArea / frameArea;
+        double mainIslandRatio = maxIslandArea / frameArea;
+
+        Debug.Log($"[判定数据] 总比例: {totalRatio:F4}, 最大岛屿比例: {mainIslandRatio:F4}, 路径数量: {healed.Count}");
+
+        // 4. 【核心判定逻辑修改】
+        // 满足以下任意一个条件即可判定胜利：
+        // 条件 A：最大的一块连续区域已经覆盖了目标框的 95% 以上（无视掉碎屑）
+        // 条件 B：总面积覆盖率超过 98% 且位置都已吸附
+        if (mainIslandRatio > 0.95f || (totalRatio > 0.98f && healed.Count <= pieces.Length)) 
+        {
+            DoVictory();
+        }
     }
 
 
@@ -410,7 +526,7 @@ public class GamePlay : MonoBehaviour
     public void OnEnable()
     {
         GameEvents.RegisterBasicEvent(GameBasicEvent.Look, OnLook);
-        GameEvents.RegisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish);
+        GameEvents.RegisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish4);
         GameEvents.RegisterBasicEvent(GameBasicEvent.PrevLevel, PrevLevel);
         GameEvents.RegisterBasicEvent(GameBasicEvent.NextLevel, NextLevel);
         GameEvents.RegisterBasicEvent(GameBasicEvent.TurnAudio, TurnAudio);
@@ -422,7 +538,7 @@ public class GamePlay : MonoBehaviour
     public void OnDisable()
     {
         GameEvents.UnregisterBasicEvent(GameBasicEvent.Look, OnLook);
-        GameEvents.UnregisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish);
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish4);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.PrevLevel, PrevLevel);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.NextLevel, NextLevel);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.TurnAudio, TurnAudio);
