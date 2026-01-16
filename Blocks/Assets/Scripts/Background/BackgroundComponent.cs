@@ -58,7 +58,7 @@ public class BackgroundComponent : MonoBehaviour
         float size = Random.Range(minSize, maxSize);
         Color col = possibleColors.Length > 0 ? possibleColors[Random.Range(0, possibleColors.Length)] : Color.white;
         // 降低背景颜色的亮度或透明度
-        //col.a = 0.3f; 
+        col.a = 0.8f; 
 
         fs.Setup(speed, rot, size, col, destroyY,pool);
     }
