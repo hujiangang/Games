@@ -6,6 +6,7 @@ public class UIContentUpdate : MonoBehaviour
 {
     public Slider progressSlider;
     public TextMeshProUGUI progressText;
+    public TextMeshProUGUI lookText;
 
     public Button play;
     public Image levelLock;
@@ -68,6 +69,7 @@ public class UIContentUpdate : MonoBehaviour
         GameEvents.RegisterBasicEvent(GameBasicEvent.CompleteLevel, CompleteLevel);
         GameEvents.RegisterEvent<bool>(GameBasicEvent.UpdateAudio, UpdateAudio);
         GameEvents.RegisterBasicEvent(GameBasicEvent.ResetUI, ResetUI);
+        GameEvents.RegisterEvent<int>(GameBasicEvent.UpdateLookCount, UpdateLookText);
     }
 
     public void OnDisable()
@@ -76,12 +78,23 @@ public class UIContentUpdate : MonoBehaviour
         GameEvents.UnregisterBasicEvent(GameBasicEvent.CompleteLevel, CompleteLevel);
         GameEvents.UnregisterEvent<bool>(GameBasicEvent.UpdateAudio, UpdateAudio);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.ResetUI, ResetUI);
+        GameEvents.UnregisterEvent<int>(GameBasicEvent.UpdateLookCount, UpdateLookText);
     }
 
     private void ResetUI()
     {
         finishPanel.SetActive(false);
     }
+
+    /// <summary>
+    /// 更新看题次数文本.
+    /// </summary>
+    /// <param name="lookCount"></param>
+    private void UpdateLookText(int lookCount)
+    {
+        lookText.text = lookCount > 0 ? $"+{lookCount}" : "";
+    }
+
 
 
     private void UpdateLevel(int level, int sumLevel, LevelUnlockStatus unlockStatus)

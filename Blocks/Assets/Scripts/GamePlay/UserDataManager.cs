@@ -149,6 +149,21 @@ public static class UserDataManager
         Save(userData);
     }
 
+    /// <summary>
+    /// 消耗提示次数.
+    /// </summary>
+    /// <returns></returns>
+    public static bool ConsumeHintCount()
+    {
+        if (userData.hintCount <= 0)
+        {
+            return false;
+        }
+        userData.hintCount--;
+        Save(userData);
+        return true;
+    }
+
 
     public static int GetHintCount()
     {

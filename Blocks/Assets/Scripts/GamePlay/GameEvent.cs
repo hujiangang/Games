@@ -18,6 +18,7 @@ public enum GameBasicEvent
     StartGameOprate, // 开始游戏操作.
 
     ResetUI,    // 重置UI相关.
+    UpdateLookCount, // 更新看题次数.
 }
 
 /// <summary>

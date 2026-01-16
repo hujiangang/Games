@@ -96,6 +96,7 @@ public class GamePlay : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
         GameEvents.InvokeEvent(GameBasicEvent.UpdateLevel, currentLevel, sumLevel, LevelUnlockStatus.Current);
+        GameEvents.InvokeEvent(GameBasicEvent.UpdateLookCount, UserDataManager.GetHintCount());
     }
 
     /// <summary>
