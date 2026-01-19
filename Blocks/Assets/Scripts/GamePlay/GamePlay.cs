@@ -104,20 +104,28 @@ public class GamePlay : MonoBehaviour
     /// </summary>
     /// <param name="level"></param>
     /// <returns></returns>
-    private LevelData GetLevelData(int level)
+    public LevelData GetLevelData(int level)
     {
+        // 限制关卡范围
         level = Mathf.Clamp(level, 1, sumLevel);
+        
+        // 优先从缓存读取，避免重复加载
         if (levelDataDict.TryGetValue(level, out LevelData data))
         {
             return data;
         }
-        Debug.Log($"GetLevelData: {level}");
-        string levelToLoad = $"Level_{level}";
-        string path = Application.dataPath + "/LevelsData/" + levelToLoad + ".json";
-        if (!File.Exists(path)) return null;
 
-        string json = File.ReadAllText(path);
-        data = JsonUtility.FromJson<LevelData>(json);
+        Debug.Log($"GetLevelData: 加载关卡 {level}");
+        string levelToLoad = $"Level_{level}";
+        data = LevelPersistence.Load(levelToLoad);
+
+        if (data == null)
+        {
+            Debug.LogError($"加载关卡 {level} 失败，请检查关卡数据是否存在");
+            return null;
+        }
+        
+        // 加入缓存，下次直接读取
         levelDataDict[level] = data;
         return data;
     }
