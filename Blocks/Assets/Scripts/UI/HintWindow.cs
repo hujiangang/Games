@@ -33,7 +33,7 @@ public class HintWindow : BasicUI
     {
         if (hintPanel.activeSelf) return;
 
-        float uiScale = 200; // 缩放倍率
+        float uiScale = 210; // 缩放倍率
 
         if (spawnedPreviews.Count <= 0)
         {
