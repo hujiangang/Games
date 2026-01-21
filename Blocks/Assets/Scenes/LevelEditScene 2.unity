@@ -1373,7 +1373,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   linePreview: {fileID: 252969493}
   pieceMaterial: {fileID: 2100000, guid: 2c396c7a9fa111041ad7ff3bb1887dcb, type: 2}
-  linePrefab: {fileID: 9189200457946673218, guid: c35623f178d907140b6c750cfa6cc387, type: 3}
+  linePrefab: {fileID: 6951274813816564330, guid: 95da477722b04a94fa0f602639985281, type: 3}
   linesortingOrder: 500
 --- !u!114 &1802551186
 MonoBehaviour:
