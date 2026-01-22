@@ -195,6 +195,8 @@ public class DraggableComponent : MonoBehaviour
             }
         }
 
+        edgeMatches = FilterSameVertexEdgeMatches(edgeMatches);
+
         // 移除平行向量的边.
         RemoveParallelNormalDuplicates(edgeMatches);
 
@@ -217,6 +219,70 @@ public class DraggableComponent : MonoBehaviour
 
         return false;
     }
+
+    /// <summary>
+    /// 极简版：判断两两边是否有相同顶点，找到则返回这两条，否则返回最近一条
+    /// </summary>
+    private List<EdgeMatch> FilterSameVertexEdgeMatches(List<EdgeMatch> edgeMatches)
+    {
+        List<EdgeMatch> result = new List<EdgeMatch>();
+        if (edgeMatches.Count == 0) return result;
+
+        // 1. 先按匹配分数排序（保证优先选距离近的边）
+        edgeMatches.Sort((a, b) => a.matchScore.CompareTo(b.matchScore));
+
+        // 2. 核心：遍历所有边对，判断是否有共享顶点（就是你说的“两两边判断是否有相同的点”）
+        float vertexEpsilon = 0.05f; // 顶点误差容错
+        EdgeMatch firstMatch = default;
+        EdgeMatch secondMatch = default;
+        bool found = false;
+
+        // 遍历所有边对（i和j两两组合）
+        for (int i = 0; i < edgeMatches.Count; i++)
+        {
+            for (int j = i + 1; j < edgeMatches.Count; j++)
+            {
+                EdgeMatch edge1 = edgeMatches[i];
+                EdgeMatch edge2 = edgeMatches[j];
+
+                // 提取两条边的所有顶点
+                Vector2 v1_1 = edge1.targetEdge.start; // 第一条边的起点
+                Vector2 v1_2 = edge1.targetEdge.end;   // 第一条边的终点
+                Vector2 v2_1 = edge2.targetEdge.start; // 第二条边的起点
+                Vector2 v2_2 = edge2.targetEdge.end;   // 第二条边的终点
+
+                // 核心判断：两条边是否有任意一个顶点相同（这就是你要的逻辑！）
+                bool hasSamePoint = 
+                    Vector2.Distance(v1_1, v2_1) < vertexEpsilon || // 边1起点 = 边2起点
+                    Vector2.Distance(v1_1, v2_2) < vertexEpsilon || // 边1起点 = 边2终点
+                    Vector2.Distance(v1_2, v2_1) < vertexEpsilon || // 边1终点 = 边2起点
+                    Vector2.Distance(v1_2, v2_2) < vertexEpsilon;  // 边1终点 = 边2终点
+
+                if (hasSamePoint)
+                {
+                    firstMatch = edge1;
+                    secondMatch = edge2;
+                    found = true;
+                    break; // 找到第一组符合条件的边对就停止（因为已经排过序，是最优的）
+                }
+            }
+            if (found) break;
+        }
+
+        // 3. 结果赋值：找到则返回两条，否则返回最近一条
+        if (found)
+        {
+            result.Add(firstMatch);
+            result.Add(secondMatch);
+        }
+        else
+        {
+            result.Add(edgeMatches[0]); // 只保留距离最近的一条
+        }
+
+        return result;
+    }
+
 
     private void RemoveParallelNormalDuplicates(List<EdgeMatch> edgeMatches)
     {
