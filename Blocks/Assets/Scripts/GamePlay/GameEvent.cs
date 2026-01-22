@@ -19,6 +19,10 @@ public enum GameBasicEvent
 
     ResetUI,    // 重置UI相关.
     UpdateLookCount, // 更新看题次数.
+
+    PieceSnapped, // 碎片吸附.
+    PieceDraggedStart, // 碎片拖拽开始.
+    UIClick, // UI按钮点击.
 }
 
 /// <summary>

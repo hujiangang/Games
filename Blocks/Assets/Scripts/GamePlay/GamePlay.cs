@@ -451,7 +451,11 @@ public class GamePlay : MonoBehaviour
 
     private void OnLook()
     {
-        UIManager.instance.OpenHintWindow(currLevelData);
+        if (UserDataManager.ConsumeHintCount())
+        {
+            UIManager.instance.OpenHintWindow(currLevelData);
+            GameEvents.InvokeEvent(GameBasicEvent.UpdateLookCount, UserDataManager.GetHintCount());
+        }
     }
 
     private void Play()

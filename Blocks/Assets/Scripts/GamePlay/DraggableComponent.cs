@@ -65,6 +65,7 @@ public class DraggableComponent : MonoBehaviour
         }
 
         isSnapped = false;
+        GameEvents.InvokeBasicEvent(GameBasicEvent.PieceDraggedStart);
 
         // 视觉提升
         globalTopOrder++;
@@ -92,6 +93,9 @@ public class DraggableComponent : MonoBehaviour
             // 直接瞬时吸附到目标位置
             transform.position = targetPos;
             isSnapped = true;
+            
+            // 触发吸附事件
+            GameEvents.InvokeBasicEvent(GameBasicEvent.PieceSnapped);
             GameEvents.InvokeBasicEvent(GameBasicEvent.CheckFinish);
         }
     }

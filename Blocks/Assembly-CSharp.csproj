@@ -70,6 +70,7 @@
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.Core.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.Offset.cs" />
     <Compile Include="Assets\Scripts\GamePlay\DraggableComponent.cs" />
+    <Compile Include="Assets\Scripts\UI\UIClickSound.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.Minkowski.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LevelData.cs" />
     <Compile Include="Assets\Scripts\LevelEdior\LineDrawer.cs" />
@@ -79,6 +80,7 @@
     <Compile Include="Assets\Scripts\GamePlay\GameEvent.cs" />
     <Compile Include="Assets\Scripts\Background\FloatingSquarePool.cs" />
     <Compile Include="Assets\Scripts\GamePlay\GamePlay.cs" />
+    <Compile Include="Assets\Scripts\UI\UIClickSoundManager.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.cs" />
     <Compile Include="Assets\Scripts\Background\FloatingSquare.cs" />
     <Compile Include="Assets\Scripts\UI\SlideUpPanel.cs" />
@@ -86,6 +88,7 @@
     <Compile Include="Assets\Scripts\GamePlay\PuzzlePiece.cs" />
     <Compile Include="Assets\Scripts\Background\BackgroundComponent.cs" />
     <Compile Include="Assets\Scripts\LevelEdior\Cutter.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\AudioComponent.cs" />
     <Compile Include="Assets\Scripts\UI\UIManager.cs" />
     <Compile Include="Assets\Scripts\UI\Effect\KeepTilting.cs" />
     <Compile Include="Assets\Scripts\Clipper2Lib\Clipper.Triangulation.cs" />
@@ -104,7 +107,6 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
-    <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Custom-Atlas.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile SSD.shader" />

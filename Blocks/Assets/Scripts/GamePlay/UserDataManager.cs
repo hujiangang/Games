@@ -18,6 +18,8 @@ public class UserData
     /// </summary>
     public int hintCount = 5;
 
+    public long saveTime;
+
     /// <summary>
     /// 关卡解锁列表.
     /// </summary>
@@ -27,8 +29,9 @@ public class UserData
     public UserData()
     {
         currentLevel = 1;
-        hintCount = 1;
+        hintCount = UserDataManager.DayMaxHintCount;
         levelUnlockStatus = new List<bool>();
+        saveTime = DateTime.Now.Ticks;
     }
 }
 
@@ -46,12 +49,21 @@ public static class UserDataManager
     /// </summary>
     public static UserData userData;
 
+    public const int DayMaxHintCount = 3;
+
 
     // 保存数据
     public static void Save(UserData data)
     {
         try
         {
+            long currentTime = DateTime.Now.Ticks;
+            if (currentTime - data.saveTime > TimeSpan.TicksPerDay)
+            {
+                data.hintCount = DayMaxHintCount;
+            }
+            data.saveTime = DateTime.Now.Ticks;
+
             // 1. 转为 JSON 字符串
             string json = JsonUtility.ToJson(data);
             
@@ -99,6 +111,12 @@ public static class UserDataManager
 
             userData = data;
 
+            long currentTime = DateTime.Now.Ticks;
+            if (currentTime - data.saveTime > TimeSpan.TicksPerDay)
+            {
+                userData.hintCount = DayMaxHintCount;
+            }
+
             // 校正.
             if (userData.currentLevel > userData.levelUnlockStatus.Count)
             {
@@ -128,7 +146,7 @@ public static class UserDataManager
     {
         userData = new ()
         {
-            hintCount = 1,
+            hintCount = DayMaxHintCount,
             currentLevel = 1
         };
         for (int i = 0; i < count; i++)

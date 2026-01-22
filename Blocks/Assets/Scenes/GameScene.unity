@@ -2969,6 +2969,8 @@ GameObject:
   - component: {fileID: 1737576502}
   - component: {fileID: 1737576503}
   - component: {fileID: 1737576504}
+  - component: {fileID: 1737576505}
+  - component: {fileID: 1737576506}
   m_Layer: 0
   m_Name: Game
   m_TagString: Untagged
@@ -3019,6 +3021,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 150f47c5d171f3341937a2673a6a1e72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1737576505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737576501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 620f67e3bc9fe324c9b309adf8d9ca5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clickSound: {fileID: 0}
+  snapSound: {fileID: 0}
+  completeSound: {fileID: 0}
+  backgroundMusic: {fileID: 0}
+  sfxVolume: 0.7
+  musicVolume: 0.163
+--- !u!114 &1737576506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737576501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ea93befabb6f0f4fbaf67ca66ecedde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoAddToAllButtons: 1
 --- !u!1 &1767049436
 GameObject:
   m_ObjectHideFlags: 0
