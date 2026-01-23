@@ -10,10 +10,14 @@ public class PuzzlePiece : MonoBehaviour {
 
     public Vector3 correctWorldPos;
 
+    public List<Vector2> originPoints;
+
 
     public void Init(List<Vector2> newPoints, Material mat, Color color, int sortingOrder)
     {
 
+        originPoints = newPoints;
+        points = newPoints;
         pieceColor = color;
         // 1. 计算这堆点的几何中心 (Centroid)
         Vector2 center = Vector2.zero;

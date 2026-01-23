@@ -27,6 +27,11 @@ public class DraggableComponent : MonoBehaviour
     /// </summary>
     private float snapThreshold = 0.3f;
 
+    /// <summary>
+    /// 平行判断阈值 - 两条边夹角余弦值大于该值则视为平行.
+    /// </summary>
+    private static float ParallelThreshold = 0.98f;
+
 
     private PuzzlePiece puzzlePiece;
     private Rect squareBounds;
@@ -146,6 +151,7 @@ public class DraggableComponent : MonoBehaviour
             Vector2 p1 = transform.TransformPoint(puzzlePiece.points[i]);
             Vector2 p2 = transform.TransformPoint(puzzlePiece.points[(i + 1) % puzzlePiece.points.Count]);
             Vector2 myDir = (p2 - p1).normalized;
+            EdgeSegment currentPieceEdge = new(p1, p2);
 
             // 找到与这条碎片边最匹配的目标边
             float bestMatchScore = float.MaxValue;
@@ -155,24 +161,28 @@ public class DraggableComponent : MonoBehaviour
             foreach (var target in allTargets)
             {
                 Vector2 targetDir = (target.end - target.start).normalized;
+                float dotValue = Mathf.Abs(Vector2.Dot(myDir, targetDir));
+                Debug.Log($"dotValue: {dotValue}, piecePoint:({p1.x},{p1.y})->({p2.x},{p2.y}), target:({target.start.x},{target.start.y})->({target.end.x},{target.end.y})");
                 // 检查是否平行
-                if (Mathf.Abs(Vector2.Dot(myDir, targetDir)) >= 1f)
+                if (dotValue >= ParallelThreshold)
                 {
                     // 计算两条平行线之间的垂直位移
                     Vector2 normal = new(-targetDir.y, targetDir.x);
+                    normal = normal.normalized;
                     float dist = Vector2.Dot(target.start - p1, normal);
+                    float absDist = Mathf.Abs(dist);
+
+
+                    Debug.Log($"absDist: {absDist},dotValue : {dotValue}");
 
                     // 检查距离和重叠
-                    if (Mathf.Abs(dist) < snapThreshold &&
+                    if (absDist < snapThreshold &&
                         IsSegmentsOverlapping(p1, p2, target.start, target.end))
                     {
                         Debug.Log($"dist: {dist}");
-                        // 计算匹配分数（距离越小分数越低）
-                        float matchScore = Mathf.Abs(dist);
-
-                        if (matchScore < bestMatchScore)
+                        if (absDist < bestMatchScore)
                         {
-                            bestMatchScore = matchScore;
+                            bestMatchScore = absDist;
                             bestTarget = target;
                             bestDistance = dist;
                             bestNormal = normal;
@@ -469,11 +479,26 @@ public class DraggableComponent : MonoBehaviour
     float PointToLineDistance(Vector2 p, Vector2 a, Vector2 b)
     {
         float l2 = Vector2.SqrMagnitude(b - a);
-        if (l2 == 0.0f) return Vector2.Distance(p, a);
+        if (l2 < Mathf.Epsilon) return Vector2.Distance(p, a);
         float t = Mathf.Max(0, Mathf.Min(1, Vector2.Dot(p - a, b - a) / l2));
         Vector2 projection = a + t * (b - a);
         return Vector2.Distance(p, projection);
     }
+
+    /// <summary>
+    /// 平行线段的最短距离（优化版）
+    /// </summary>
+    private float ParallelSegmentDistance(EdgeSegment segA, EdgeSegment segB)
+    {
+        if (Vector2.Distance(segA.start, segA.end) < Mathf.Epsilon)
+            return PointToLineDistance(segA.start, segB.start, segB.end);
+        if (Vector2.Distance(segB.start, segB.end) < Mathf.Epsilon)
+            return PointToLineDistance(segB.start, segA.start, segA.end);
+
+        float distance = PointToLineDistance(segA.start, segB.start, segB.end);
+        return Mathf.Max(distance, 0f);
+    }
+
 
     List<EdgeSegment> GetAllAvailableEdges()
     {

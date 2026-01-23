@@ -4,7 +4,6 @@ using System.IO;
 using System.Collections;
 using Clipper2Lib;
 
-
 /// <summary>
 /// 关卡解锁状态.
 /// </summary>
@@ -17,7 +16,6 @@ public enum LevelUnlockStatus
 
 public class GamePlay : MonoBehaviour
 {
-
     /// <summary>
     /// 是否全局锁定，防止操作.
     /// </summary>
@@ -41,25 +39,14 @@ public class GamePlay : MonoBehaviour
     /// </summary>
     readonly List<PolygonCollider2D> allPiecePolys = new();
 
-
     Vector2[] framePoints;
-
     private Rect targetFrameRect;
 
     //关卡数据.
     public int currentLevel = 0;
     private int sumLevel = 0;
-
-    /// <summary>
-    /// 选择关卡.
-    /// </summary>
     private int selectLevel = 0;
-
-    /// <summary>
-    /// 当前关卡数据.
-    /// </summary>
     private LevelData currLevelData;
-
     private readonly Dictionary<int, LevelData> levelDataDict = new();
 
     /// <summary>
@@ -72,7 +59,10 @@ public class GamePlay : MonoBehaviour
     /// </summary>
     public static bool IsStartOperation = false;
 
-
+    // 缓存目标框对象，避免重复Find
+    private GameObject targetFrameObj;
+    // 目标框边长（缓存）
+    private float frameSideLength;
 
     void Awake()
     {
@@ -91,7 +81,6 @@ public class GamePlay : MonoBehaviour
         StartCoroutine(DelayInit());
     }
 
-
     IEnumerator DelayInit()
     {
         yield return new WaitForSeconds(0.5f);
@@ -108,7 +97,7 @@ public class GamePlay : MonoBehaviour
     {
         // 限制关卡范围
         level = Mathf.Clamp(level, 1, sumLevel);
-        
+
         // 优先从缓存读取，避免重复加载
         if (levelDataDict.TryGetValue(level, out LevelData data))
         {
@@ -124,7 +113,7 @@ public class GamePlay : MonoBehaviour
             Debug.LogError($"加载关卡 {level} 失败，请检查关卡数据是否存在");
             return null;
         }
-        
+
         // 加入缓存，下次直接读取
         levelDataDict[level] = data;
         return data;
@@ -137,7 +126,7 @@ public class GamePlay : MonoBehaviour
     {
         foreach (var piece in allPieces)
         {
-            Destroy(piece.gameObject);
+            if (piece != null) Destroy(piece.gameObject);
         }
         allPieces.Clear();
         allPiecePolys.Clear();
@@ -154,9 +143,10 @@ public class GamePlay : MonoBehaviour
         int piecesCount = 0;
         currLevelData = data;
 
-        Vector3 framePos = GameObject.Find("TargetFrame").transform.position;
-        float len = CutterManager.cutterLength;
-        targetFrameRect = new(framePos.x - len, framePos.y - len, len * 2, len * 2);
+        // 容错：目标框为空时使用默认值
+        Vector3 framePos = targetFrameObj != null ? targetFrameObj.transform.position : Vector3.zero;
+        frameSideLength = CutterManager.cutterLength;
+        targetFrameRect = new(framePos.x - frameSideLength, framePos.y - frameSideLength, frameSideLength * 2, frameSideLength * 2);
         int sumPieceCount = data.pieces.Count;
 
         DraggableComponent.globalTopOrder = sumPieceCount + 1;
@@ -195,9 +185,6 @@ public class GamePlay : MonoBehaviour
             FallAndEnableDrag fader = go.AddComponent<FallAndEnableDrag>();
             fader.BeginFall(startPos, endPos);
 
-            // 随机旋转增加难度(不需要旋转,本身不能旋转的).
-            //go.transform.rotation = Quaternion.Euler(0, 0, Random.Range(-30, 30));
-
             allPieces.Add(gp);
         }
     }
@@ -207,26 +194,35 @@ public class GamePlay : MonoBehaviour
     /// </summary>
     void DrawTargetFrame()
     {
-        GameObject frame = new("TargetFrame");
+        // 先尝试查找，没有则创建，同时赋值给缓存变量
+        targetFrameObj = GameObject.Find("TargetFrame");
+        if (targetFrameObj == null)
+        {
+            targetFrameObj = new GameObject("TargetFrame");
+            Debug.LogWarning("未找到TargetFrame，自动创建一个");
+        }
+
         float offsetY = 2.5f;
-        frame.transform.position = new Vector3(0, offsetY, 0);
-        LineRenderer lr = frame.AddComponent<LineRenderer>();
+        targetFrameObj.transform.position = new Vector3(0, offsetY, 0);
+        LineRenderer lr = targetFrameObj.GetComponent<LineRenderer>();
+        if (lr == null)
+        {
+            lr = targetFrameObj.AddComponent<LineRenderer>();
+        }
 
         lr.useWorldSpace = false;
         float lineWidth = 0.1f;
         lr.startWidth = lineWidth;
         lr.endWidth = lineWidth;
 
-        // 【核心修改】：外扩坐标
-        // 为了让碎片的边缘正好对准框的“内边缘”，框的路径点要外扩 半个线宽
-        float padding = lineWidth / 2f;
+        // 外扩坐标，让碎片边缘对准框的内边缘
+        float padding = lineWidth / 1.5f;
         float L = CutterManager.cutterLength + padding;
         Vector3[] corners = new Vector3[4];
         corners[0] = new Vector3(-L, L, 0.1f);
         corners[1] = new Vector3(L, L, 0.1f);
         corners[2] = new Vector3(L, -L, 0.1f);
         corners[3] = new Vector3(-L, -L, 0.1f);
-        //corners[4] = new Vector3(-CutterManager.cutterLength, CutterManager.cutterLength, 0.1f); // 闭合
 
         lr.positionCount = 4;
         lr.SetPositions(corners);
@@ -239,10 +235,8 @@ public class GamePlay : MonoBehaviour
         lr.numCapVertices = 4;
     }
 
-
     /// <summary>
-    /// 检查是否拼图完成
-    /// 在拼图区域内均匀采样点，检测是否被碎片覆盖，若覆盖率达到 98% 以上即判定为完成.
+    /// 采样点检测完成（备用方法）
     /// </summary>
     public void CheckFinish2()
     {
@@ -269,153 +263,209 @@ public class GamePlay : MonoBehaviour
         if (fillPercent > 0.98f)
         {
             GamePlay.isGlobalLocked = true;
-            Debug.Log("恭喜！拼图完成！");
-        }
-
-    }
-
-
-    private void DoVictory()
-    {
-        GamePlay.isGlobalLocked = true;
-        GameEvents.InvokeBasicEvent(GameBasicEvent.CompleteLevel);
-        CompleteLevel();
-        Debug.Log("恭喜！拼图完成！");
-    }
-
-    /// <summary>
-    /// 检查是否拼图完成(面积覆盖法).
-    /// </summary>
-    public void CheckFinish()
-    {
-        double fillArea = Clipper2CutterHelper.GetIntersectionAreaEx(allPiecePolys, framePoints);
-
-        double ratio = fillArea / frameArea;
-
-        // 2. 检查是否填充超过 95%.
-        if (ratio > 0.95f)
-        {
+            Debug.Log("恭喜！拼图完成（采样点检测）！");
             DoVictory();
         }
-        Debug.Log($"填充区域面积: {fillArea}, 目标区域面积: {frameArea}, 填充比例: {ratio}");
+        Debug.Log($"采样点覆盖比例: {fillPercent:P2}, 已覆盖: {pointsFilled}/{totalSamples}");
     }
 
-    public void CheckFinish3()
+    public void CheckFinish6()
     {
-        const double Scale = 1000.0;
-        Paths64 allSnappedPaths = new();
+        if (isGlobalLocked) return;
 
-        // 1. 收集所有【已吸附】碎片的顶点
+        const double Scale = 1000.0;
         DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
+
+        if (pieces == null || pieces.Length == 0)
+        {
+            Debug.Log("[拼图检测] 无有效碎片，检测终止");
+            return;
+        }
+
+        // ========== 新增：第一步先统计吸附的碎片数量 ==========
+        int snappedPieceCount = 0; // 已成功吸附的碎片数
         foreach (var p in pieces)
         {
+            if (p == null) continue;
+            // 关键：判断碎片是否处于吸附状态（需确保DraggableComponent有IsSnapped属性）
+            // 如果你的吸附标记字段不是IsSnapped，替换为你实际的字段名（比如isAttached/snapped）
             if (p.isSnapped)
             {
-                Path64 path = new();
-                // 必须使用变换后的世界坐标
-                foreach (var v in p.GetComponent<PuzzlePiece>().points)
-                {
-                    Vector2 wPos = p.transform.TransformPoint(v);
-                    path.Add(new Point64(wPos.x * Scale, wPos.y * Scale));
-                }
-                allSnappedPaths.Add(path);
+                snappedPieceCount++;
             }
         }
 
-        Debug.Log($"已吸附碎片数量: {allSnappedPaths.Count}, 总碎片数量: {pieces.Length}");
-
-        if (allSnappedPaths.Count < pieces.Length) return; // 数量都不够，肯定没完
-
-        // 2. 【核心】执行 Union（并集）运算
-        // 这会将重叠的部分合并，产生一个或多个不重叠的大多边形
-        Paths64 unionResult = Clipper.Union(allSnappedPaths, FillRule.NonZero);
-
-        // 3. 计算并集后的总面积
-        double currentArea = 0;
-        foreach (var path in unionResult)
+        // 基础校验：吸附数量不足直接返回（比如要求至少90%的碎片完成吸附）
+        float snappedThreshold = 0.9f; // 可调整：比如0.9=90%碎片吸附才判定
+        if (snappedPieceCount < pieces.Length * snappedThreshold)
         {
-            currentArea += System.Math.Abs(Clipper.Area(path));
+            Debug.Log($"[拼图检测] ✗ 未完成，原因：吸附碎片不足({snappedPieceCount}/{pieces.Length})");
+            return;
         }
-        currentArea /= (Scale * Scale); // 还原缩放
 
-        // 4. 与目标框面积对比 (frameArea 是你初始正方形的面积，比如 36)
-        double ratio = currentArea / frameArea;
-
-        // 调试：观察合并后的面积
-        Debug.Log($"合并后总面积: {currentArea}, 目标面积: {frameArea}, 比例: {ratio:F4}, 并集路径数量: {unionResult.Count}");
-
-        // 5. 判定胜利：
-        // 因为是 Union 后的面积，绝对不会超过原始总面积（除非碎片跑到了正方形外面）
-        // 所以这里的 ratio 如果在 0.99 到 1.0 之间，就是完美填充
-        if (ratio >= 0.95f && ratio <= 1.01f) 
-        {
-            // 还要加个保险：并集后的结果必须只有一个路径（说明中间没缝，也没散块）
-            if (unionResult.Count == 1)
-            {
-                DoVictory();
-            }
-        }
-    }
-
-    public void CheckFinish4()
-    {
-        const double Scale = 1000.0;
-        DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
-        
-        // 1. 基础检查：必须所有碎片都已吸附
-        int snappedCount = 0;
+        // 1. 收集所有碎片的世界坐标路径
         Paths64 allPaths = new Paths64();
-        foreach (var p in pieces) {
-            if (p.isSnapped) {
-                snappedCount++;
-                // 获取碎片当前世界坐标的路径
-                allPaths.Add(p.GetWorldPath(Scale)); 
+        int validPieceCount = 0;
+        int piecesInFrame = 0;
+
+        foreach (var p in pieces)
+        {
+            if (p == null || p.GetComponent<PuzzlePiece>() == null) continue;
+
+            Path64 path = GetPieceWorldPath(p, Scale);
+            if (path.Count >= 3)
+            {
+                allPaths.Add(path);
+                validPieceCount++;
+
+                Vector2 pieceCenter = p.transform.position;
+                if (targetFrameRect.Contains(pieceCenter))
+                {
+                    piecesInFrame++;
+                }
             }
         }
 
-        if (snappedCount < pieces.Length) return; 
-
-        // 2. 执行并集（Union）并加大膨胀力度进行“缝合”
-        // 这里的 0.05 * Scale 是关键。如果你的黑色缝隙很明显，这个值要稍微大一点
-        // 它会把碎片边缘向外扩，强制让相邻碎片重叠，从而合并成一个 Count
-        Paths64 combined = Clipper.Union(allPaths, FillRule.NonZero);
-        Paths64 healed = Clipper.InflatePaths(combined, 0.015 * Scale, JoinType.Miter, EndType.Polygon);
-        
-        // 3. 计算合并后的总面积
-        double totalFillArea = 0;
-        double maxIslandArea = 0; // 记录最大的那块碎片的面积
-
-        foreach (var path in healed) {
-            double a = System.Math.Abs(Clipper.Area(path));
-            totalFillArea += a;
-            if (a > maxIslandArea) maxIslandArea = a;
+        // 基础校验：碎片必须大部分在框内
+        if (piecesInFrame < pieces.Length * 0.95)
+        {
+            Debug.Log($"[拼图检测] 碎片不在框内: {piecesInFrame}/{pieces.Length}，未完成");
+            return;
         }
-        
-        totalFillArea /= (Scale * Scale);
+
+        if (validPieceCount < pieces.Length * 0.8)
+        {
+            Debug.Log($"[拼图检测] 有效碎片不足: {validPieceCount}/{pieces.Length}，未完成");
+            return;
+        }
+
+        // 2. 合并所有碎片（并集运算）
+        Paths64 unionPieces = Clipper.Union(allPaths, FillRule.NonZero);
+
+        // 轻微膨胀弥合缝隙
+        double inflateValue = 0.0015 * Scale;
+        Paths64 healedPieces = Clipper.InflatePaths(unionPieces, inflateValue,
+            JoinType.Miter, EndType.Polygon, 2.0);
+
+        // 3. 创建目标框路径
+        Paths64 framePaths = CreateTargetFramePath(Scale);
+        if (framePaths == null || framePaths.Count == 0)
+        {
+            Debug.LogError("[拼图检测] 目标框路径创建失败");
+            return;
+        }
+
+        // 4. 计算碎片与目标框的交集
+        Paths64 intersection = Clipper.Intersect(healedPieces, framePaths, FillRule.NonZero);
+
+        // 5. 计算核心面积指标
+        double intersectionArea = 0;
+        double maxIslandArea = 0;
+        int significantIslands = 0;
+
+        foreach (var path in intersection)
+        {
+            double area = System.Math.Abs(Clipper.Area(path));
+            intersectionArea += area;
+
+            if (area > maxIslandArea) maxIslandArea = area;
+
+            double areaRatio = (area / (Scale * Scale)) / frameArea;
+            if (areaRatio > 0.01f)
+            {
+                significantIslands++;
+            }
+        }
+
+        intersectionArea /= (Scale * Scale);
         maxIslandArea /= (Scale * Scale);
 
-        double totalRatio = totalFillArea / frameArea;
+        double coverageRatio = intersectionArea / frameArea;
         double mainIslandRatio = maxIslandArea / frameArea;
 
-        Debug.Log($"[判定数据] 总比例: {totalRatio:F4}, 最大岛屿比例: {mainIslandRatio:F4}, 路径数量: {healed.Count}");
+        Debug.Log($"[拼图检测] 总覆盖率: {coverageRatio:P2}, 最大区域覆盖率: {mainIslandRatio:P2}, " +
+                  $"显著区域数: {significantIslands}, 总区域数: {intersection.Count}, " +
+                  $"框内碎片数: {piecesInFrame}/{pieces.Length}, 吸附碎片数: {snappedPieceCount}/{pieces.Length}");
 
-        // 4. 【核心判定逻辑修改】
-        // 满足以下任意一个条件即可判定胜利：
-        // 条件 A：最大的一块连续区域已经覆盖了目标框的 95% 以上（无视掉碎屑）
-        // 条件 B：总面积覆盖率超过 98% 且位置都已吸附
-        if (mainIslandRatio > 0.95f || (totalRatio > 0.98f && healed.Count <= pieces.Length)) 
+        // 🌟 核心修改：适配多圈层拼图的判定逻辑（保留原有逻辑）
+        bool isMultiLayerPuzzle = significantIslands >= pieces.Length * 0.7;
+        bool condition1 = coverageRatio >= 0.96f && piecesInFrame >= pieces.Length;
+        bool condition2 = coverageRatio >= 0.98f;
+        bool condition3 = !isMultiLayerPuzzle && mainIslandRatio >= 0.95f;
+
+        // 新增：最终判定时也校验吸附数量（确保100%吸附）
+        bool isAllSnapped = snappedPieceCount == pieces.Length;
+        if ((condition1 || condition2 || condition3) && isAllSnapped)
         {
+            Debug.Log($"[拼图检测] ✓ 完成! 条件1={condition1}, 条件2={condition2}, 条件3={condition3}, 吸附数达标={isAllSnapped}");
             DoVictory();
+        }
+        else
+        {
+            string reason = "";
+            if (!isAllSnapped)
+                reason = $"吸附碎片不足({snappedPieceCount}/{pieces.Length})"; // 优先显示吸附不足
+            else if (coverageRatio < 0.95)
+                reason = $"覆盖率不足({coverageRatio:P2})";
+            else if (piecesInFrame < pieces.Length)
+                reason = $"碎片不在框内({piecesInFrame}/{pieces.Length})";
+            else if (!isMultiLayerPuzzle && mainIslandRatio < 0.95)
+                reason = $"最大连续区域不足({mainIslandRatio:P2})";
+            else
+                reason = "拼图结构特殊，但未满足其他条件";
+
+            Debug.Log($"[拼图检测] ✗ 未完成，原因：{reason}");
         }
     }
 
+    /// <summary>
+    /// 创建目标框的标准化路径（复用现有缓存数据，避免重复计算）
+    /// </summary>
+    private Paths64 CreateTargetFramePath(double scale)
+    {
+        Paths64 framePaths = new Paths64();
+        Path64 framePath = new Path64();
+
+        if (targetFrameObj == null || frameSideLength <= 0)
+        {
+            Debug.LogError("目标框对象或尺寸无效");
+            return framePaths;
+        }
+
+        Vector3 framePos = targetFrameObj.transform.position;
+        float halfLength = frameSideLength;
+
+        // 构建目标框四个顶点（顺时针）
+        Vector2[] vertices = new Vector2[]
+        {
+            new(framePos.x - halfLength, framePos.y + halfLength),
+            new(framePos.x + halfLength, framePos.y + halfLength),
+            new(framePos.x + halfLength, framePos.y - halfLength),
+            new(framePos.x - halfLength, framePos.y - halfLength)
+        };
+
+        foreach (var v in vertices)
+        {
+            framePath.Add(new Point64(v.x * scale, v.y * scale));
+        }
+
+        framePaths.Add(framePath);
+        return framePaths;
+    }
 
     /// <summary>
-    /// 计算目标区域的面积.
+    /// 计算目标区域的面积（优化版，增加容错）
     /// </summary>
     private void ComputeFrameArea()
     {
-        Vector3 framePos = GameObject.Find("TargetFrame").transform.position;
+        if (targetFrameObj == null)
+        {
+            Debug.LogError("目标框为空，无法计算面积");
+            frameArea = 36; // 默认值（6x6）
+            return;
+        }
+
+        Vector3 framePos = targetFrameObj.transform.position;
         float L = CutterManager.cutterLength;
         Vector2 worldPos = framePos;
 
@@ -428,10 +478,204 @@ public class GamePlay : MonoBehaviour
         };
 
         framePoints = polygon.ToArray();
-
         frameArea = Clipper2CutterHelper.GetPolygonArea(polygon);
+        frameSideLength = L * 2;
+
+        Debug.Log($"目标框面积计算完成: {frameArea:F2}, 边长: {frameSideLength}");
     }
 
+    /// <summary>
+    /// 胜利逻辑（统一入口）
+    /// </summary>
+    private void DoVictory()
+    {
+        // 防止重复触发
+        if (isGlobalLocked) return;
+
+        GamePlay.isGlobalLocked = true;
+        GameEvents.InvokeBasicEvent(GameBasicEvent.CompleteLevel);
+        CompleteLevel();
+        Debug.Log("=== 恭喜！拼图完成！===");
+    }
+
+    // 保留原有方法，标记为过时
+    [System.Obsolete("请使用优化后的CheckFinish6方法")]
+    public void CheckFinish()
+    {
+        double fillArea = Clipper2CutterHelper.GetIntersectionAreaEx(allPiecePolys, framePoints);
+        double ratio = fillArea / frameArea;
+
+        if (ratio > 0.95f)
+        {
+            DoVictory();
+        }
+        Debug.Log($"[旧方法] 填充区域面积: {fillArea}, 目标面积: {frameArea}, 比例: {ratio:F4}");
+    }
+
+    [System.Obsolete("请使用优化后的CheckFinish6方法")]
+    public void CheckFinish3()
+    {
+        Debug.LogWarning("CheckFinish3方法已过时，存在依赖isSnapped的bug，请切换到CheckFinish6");
+        // 原有逻辑保留，仅做警告
+        const double Scale = 1000.0;
+        Paths64 allSnappedPaths = new();
+
+        DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
+        foreach (var p in pieces)
+        {
+            if (p.isSnapped)
+            {
+                Path64 path = GetPieceWorldPath(p, Scale);
+                allSnappedPaths.Add(path);
+            }
+        }
+
+        if (allSnappedPaths.Count < pieces.Length) return;
+
+        Paths64 unionResult = Clipper.Union(allSnappedPaths, FillRule.NonZero);
+        double currentArea = 0;
+        foreach (var path in unionResult)
+        {
+            currentArea += System.Math.Abs(Clipper.Area(path));
+        }
+        currentArea /= (Scale * Scale);
+
+        double ratio = currentArea / frameArea;
+        Debug.Log($"[旧方法] 合并后面积: {currentArea}, 比例: {ratio:F4}, 路径数: {unionResult.Count}");
+
+        if (ratio >= 0.95f && ratio <= 1.01f && unionResult.Count == 1)
+        {
+            DoVictory();
+        }
+    }
+
+    [System.Obsolete("请使用优化后的CheckFinish6方法")]
+    public void CheckFinish4()
+    {
+        Debug.LogWarning("CheckFinish4方法已过时，存在膨胀参数不合理的bug，请切换到CheckFinish6");
+        // 原有逻辑保留，仅做警告
+        const double Scale = 1000.0;
+        DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
+
+        int snappedCount = 0;
+        Paths64 allPaths = new();
+        foreach (var p in pieces)
+        {
+            if (p.isSnapped)
+            {
+                snappedCount++;
+                allPaths.Add(GetPieceWorldPath(p, Scale));
+            }
+        }
+
+        if (snappedCount < pieces.Length)
+        {
+            Debug.Log($"[旧方法] 已吸附: {snappedCount}/{pieces.Length}, 未完成");
+            return;
+        }
+
+        Paths64 combined = Clipper.Union(allPaths, FillRule.NonZero);
+        Paths64 healed = Clipper.InflatePaths(combined, 0.005 * Scale, JoinType.Miter, EndType.Polygon);
+
+        double totalFillArea = 0;
+        double maxIslandArea = 0;
+        foreach (var path in healed)
+        {
+            double a = System.Math.Abs(Clipper.Area(path));
+            totalFillArea += a;
+            if (a > maxIslandArea) maxIslandArea = a;
+        }
+
+        totalFillArea /= (Scale * Scale);
+        maxIslandArea /= (Scale * Scale);
+
+        double totalRatio = totalFillArea / frameArea;
+        double mainIslandRatio = maxIslandArea / frameArea;
+
+        Debug.Log($"[旧方法] 总比例: {totalRatio:F4}, 最大岛比例: {mainIslandRatio:F4}, 路径数: {healed.Count}");
+
+        bool condition1 = mainIslandRatio >= 0.95f;
+        bool condition2 = healed.Count == 1 && totalRatio >= 0.96f;
+
+        if (condition1 || condition2)
+        {
+            Debug.Log($"[旧方法] ✓ 完成! 条件1={condition1}, 条件2={condition2}");
+            DoVictory();
+        }
+        else
+        {
+            Debug.Log($"[旧方法] ✗ 未完成. 条件1={condition1}, 条件2={condition2}");
+        }
+    }
+
+    [System.Obsolete("请使用优化后的CheckFinish6方法")]
+    public void CheckFinish5()
+    {
+        Debug.LogWarning("CheckFinish5方法已过时，存在膨胀参数和判定阈值不合理的bug，请切换到CheckFinish6");
+        // 原有逻辑保留，仅做警告
+        const double Scale = 1000.0;
+        DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
+
+        Paths64 allPaths = new();
+        foreach (var p in pieces)
+        {
+            allPaths.Add(GetPieceWorldPath(p, Scale));
+        }
+
+        Paths64 unionPieces = Clipper.Union(allPaths, FillRule.NonZero);
+        Debug.Log($"[旧方法] 合并后: {unionPieces.Count} 个区域");
+
+        Paths64 healed = Clipper.InflatePaths(unionPieces, 0.008 * Scale, JoinType.Miter, EndType.Polygon);
+        Debug.Log($"[旧方法] 膨胀后: {healed.Count} 个区域");
+
+        Path64 framePath = new();
+        Vector3 framePos = GameObject.Find("TargetFrame").transform.position;
+        float L = CutterManager.cutterLength;
+        framePath.Add(new Point64((framePos.x - L) * Scale, (framePos.y + L) * Scale));
+        framePath.Add(new Point64((framePos.x + L) * Scale, (framePos.y + L) * Scale));
+        framePath.Add(new Point64((framePos.x + L) * Scale, (framePos.y - L) * Scale));
+        framePath.Add(new Point64((framePos.x - L) * Scale, (framePos.y - L) * Scale));
+        Paths64 framePaths = new() { framePath };
+
+        Paths64 intersection = Clipper.Intersect(healed, framePaths, FillRule.NonZero);
+
+        double intersectionArea = 0;
+        double maxIslandArea = 0;
+
+        foreach (var path in intersection)
+        {
+            double area = System.Math.Abs(Clipper.Area(path));
+            intersectionArea += area;
+            if (area > maxIslandArea) maxIslandArea = area;
+        }
+
+        intersectionArea /= (Scale * Scale);
+        maxIslandArea /= (Scale * Scale);
+
+        double coverageRatio = intersectionArea / frameArea;
+        double mainIslandRatio = maxIslandArea / frameArea;
+
+        Debug.Log($"[旧方法] 交集面积: {intersectionArea:F4}, 覆盖率: {coverageRatio:F4}, 最大岛: {mainIslandRatio:F4}, 路径数: {intersection.Count}");
+
+        bool condition1 = intersection.Count == 1 && coverageRatio >= 0.94f;
+        bool condition2 = mainIslandRatio >= 0.93f;
+
+        Debug.Log($"[旧方法] 判定结果: 条件1={condition1}, 条件2={condition2}");
+
+        if (condition1 || condition2)
+        {
+            Debug.Log($"[旧方法] ✓ 完成! 条件1={condition1}, 条件2={condition2}");
+            DoVictory();
+        }
+        else if (coverageRatio >= 0.93f)
+        {
+            Debug.Log($"[旧方法] ✗ 覆盖率足够但有 {intersection.Count} 个分离区域，最大岛{mainIslandRatio:P}");
+        }
+        else
+        {
+            Debug.Log($"[旧方法] ✗ 覆盖率不足 ({coverageRatio:P})");
+        }
+    }
 
     // 在编辑器里画出托盘区域，方便调试
     void OnDrawGizmos()
@@ -439,10 +683,39 @@ public class GamePlay : MonoBehaviour
         // 画出打乱碎片的圆形区域
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(spawnCenter, spawnRadius);
+
+        // 画出目标框区域
+        if (targetFrameObj != null)
+        {
+            Gizmos.color = Color.cyan;
+            float L = CutterManager.cutterLength;
+            Vector3 framePos = targetFrameObj.transform.position;
+            Gizmos.DrawWireCube(framePos, new Vector3(L * 2, L * 2, 0.1f));
+        }
     }
 
-    #region Event_Register_Handler
+    #region 工具方法
 
+    /// <summary>
+    /// 获取碎片的世界坐标路径（封装，解决原有GetWorldPath缺失问题）
+    /// </summary>
+    private Path64 GetPieceWorldPath(DraggableComponent piece, double scale)
+    {
+        Path64 path = new Path64();
+        PuzzlePiece puzzlePiece = piece.GetComponent<PuzzlePiece>();
+
+        foreach (var v in puzzlePiece.points)
+        {
+            Vector2 wPos = piece.transform.TransformPoint(v);
+            path.Add(new Point64(wPos.x * scale, wPos.y * scale));
+        }
+
+        return path;
+    }
+
+    #endregion
+
+    #region Event_Register_Handler
 
     private void CompleteLevel()
     {
@@ -483,15 +756,14 @@ public class GamePlay : MonoBehaviour
         {
             levelUnlockStatus = LevelUnlockStatus.Unlocked;
         }
-        Debug.Log($"Next Level : select {selectLevel}, status : {levelUnlockStatus.ToString()}");
+        Debug.Log($"Prev Level : select {selectLevel}, status : {levelUnlockStatus.ToString()}");
         GameEvents.InvokeEvent(GameBasicEvent.UpdateLevel, selectLevel, sumLevel, levelUnlockStatus);
 
         if (selectLevel <= UserDataManager.GetCurrentLevel())
         {
             currentLevel = selectLevel;
-            Play();    
+            Play();
         }
-        
     }
 
     private void NextLevel()
@@ -513,7 +785,7 @@ public class GamePlay : MonoBehaviour
         if (selectLevel <= UserDataManager.GetCurrentLevel())
         {
             currentLevel = selectLevel;
-            Play();    
+            Play();
         }
     }
 
@@ -533,25 +805,24 @@ public class GamePlay : MonoBehaviour
     {
         selectLevel = currentLevel;
         GameEvents.InvokeEvent(GameBasicEvent.UpdateLevel, selectLevel, sumLevel, LevelUnlockStatus.Current);
-
     }
 
     public void OnEnable()
     {
         GameEvents.RegisterBasicEvent(GameBasicEvent.Look, OnLook);
-        GameEvents.RegisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish4);
+        // 注册优化后的检测方法
+        GameEvents.RegisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish6);
         GameEvents.RegisterBasicEvent(GameBasicEvent.PrevLevel, PrevLevel);
         GameEvents.RegisterBasicEvent(GameBasicEvent.NextLevel, NextLevel);
         GameEvents.RegisterBasicEvent(GameBasicEvent.TurnAudio, TurnAudio);
         GameEvents.RegisterBasicEvent(GameBasicEvent.StartGameOprate, StartGameOprate);
         GameEvents.RegisterBasicEvent(GameBasicEvent.Play, Play);
-
     }
 
     public void OnDisable()
     {
         GameEvents.UnregisterBasicEvent(GameBasicEvent.Look, OnLook);
-        GameEvents.UnregisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish4);
+        GameEvents.UnregisterBasicEvent(GameBasicEvent.CheckFinish, CheckFinish6);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.PrevLevel, PrevLevel);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.NextLevel, NextLevel);
         GameEvents.UnregisterBasicEvent(GameBasicEvent.TurnAudio, TurnAudio);
