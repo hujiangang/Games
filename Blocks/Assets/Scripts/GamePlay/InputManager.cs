@@ -78,7 +78,8 @@ public class InputManager : MonoBehaviour
         // C. 抬起
         if (inputEnded && currentTarget != null)
         {
-            currentTarget.StopDragging();
+            Vector2 worldPos = mainCamera.ScreenToWorldPoint(screenPosition);
+            currentTarget.StopDragging(worldPos);
             currentTarget = null;
         }
     }

@@ -86,11 +86,12 @@ public class DraggableComponent : MonoBehaviour
         transform.position = (Vector3)(worldMousePos + (Vector2)offset);
     }
 
-    public void StopDragging()
+    public void StopDragging(Vector2 worldMousePos)
     {
         if (GamePlay.isGlobalLocked) return;
 
-        if (!CheckIfFullyInside()) return;
+        // Only proceed with snapping if the majority of the piece is inside the frame
+        if (!CheckIfMajorityInside()) return;
 
         Vector3 targetPos;
         if (TrySnapToAnyEdge(out targetPos))
@@ -106,7 +107,6 @@ public class DraggableComponent : MonoBehaviour
     }
     #endregion
 
-
     bool TrySnapToAnyEdge(out Vector3 targetPos)
     {
         List<EdgeSegment> allTargets = GetAllAvailableEdges();
@@ -116,29 +116,58 @@ public class DraggableComponent : MonoBehaviour
         float distanceToCorrect = Vector3.Distance(originalPos, correctWorldPos);
         if (distanceToCorrect < snapCorrectPosThreshold)
         {
-            // 直接吸附到正确位置
             targetPos = correctWorldPos;
-            return true;
+            if (!IsPositionInvalid(targetPos)) return true;
         }
 
         // 2. 边平行且距离近的情况.
-        Vector3 twoEdgeSnapPos;
-        if (CheckEdgeParallelSnap(allTargets, originalPos, out twoEdgeSnapPos))
-        {
-            targetPos = twoEdgeSnapPos;
-            return true;
-        }
-
-        // 没有找到合适的吸附位置
-        targetPos = originalPos;
+        GetEdgeParallelSnap(allTargets, originalPos, out targetPos);
+        if (!IsPositionInvalid(targetPos)) return true;
+    
         return false;
     }
 
+    /// <summary>
+    /// 检查指定位置是否会超出边框或与其他碎片重叠
+    /// </summary>
+    /// <param name="targetPos">目标位置</param>
+    /// <returns>如果超出边框或与其他碎片重叠则返回true，否则返回false</returns>
+    public bool IsPositionInvalid(Vector3 targetPos)
+    {
+        // 保存当前位置
+        Vector3 originalPos = transform.position;
+        
+        // 临时移动到目标位置
+        transform.position = targetPos;
+        
+        try
+        {
+            // 检查是否完全在边框内.
+            if (!CheckIfFullyInside())
+            {
+                return true;
+            }
+            
+            // 检查是否与其他已吸附的碎片重叠
+            if (IsIntersectingWithOthers())
+            {
+                return true; // 与其它碎片重叠
+            }
+            
+            // 位置有效
+            return false;
+        }
+        finally
+        {
+            // 恢复原来的位置
+            transform.position = originalPos;
+        }
+    }
 
     /// <summary>
     /// 检查两条边平行且距离近的吸附 - 碎片边分别匹配目标边
     /// </summary>
-    private bool CheckEdgeParallelSnap(List<EdgeSegment> allTargets, Vector3 originalPos, out Vector3 snapPos)
+    private void GetEdgeParallelSnap(List<EdgeSegment> allTargets, Vector3 originalPos, out Vector3 snapPos)
     {
         snapPos = originalPos;
 
@@ -162,7 +191,7 @@ public class DraggableComponent : MonoBehaviour
             {
                 Vector2 targetDir = (target.end - target.start).normalized;
                 float dotValue = Mathf.Abs(Vector2.Dot(myDir, targetDir));
-                Debug.Log($"dotValue: {dotValue}, piecePoint:({p1.x},{p1.y})->({p2.x},{p2.y}), target:({target.start.x},{target.start.y})->({target.end.x},{target.end.y})");
+                //Debug.Log($"dotValue: {dotValue}, piecePoint:({p1.x},{p1.y})->({p2.x},{p2.y}), target:({target.start.x},{target.start.y})->({target.end.x},{target.end.y})");
                 // 检查是否平行
                 if (dotValue >= ParallelThreshold)
                 {
@@ -211,23 +240,8 @@ public class DraggableComponent : MonoBehaviour
         RemoveParallelNormalDuplicates(edgeMatches);
 
         // 计算整体的最佳移动位置
-        Vector3 bestPosition = CalculateEdgeSnapPosition(edgeMatches, originalPos);
+        snapPos = CalculateEdgeSnapPosition(edgeMatches, originalPos);
 
-        if (bestPosition != originalPos)
-        {
-            // 检查重叠
-            transform.position = bestPosition;
-            bool wouldOverlap = IsIntersectingWithOthers();
-            transform.position = originalPos;
-
-            if (!wouldOverlap)
-            {
-                snapPos = bestPosition;
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /// <summary>
@@ -425,9 +439,9 @@ public class DraggableComponent : MonoBehaviour
     bool IsIntersectingWithOthers()
     {
         // 1. 先用 Unity 自带的 Collider 快速过滤
-        Collider2D myCol = GetComponent<Collider2D>();
+        PolygonCollider2D myCol = GetComponent<PolygonCollider2D>();
         ContactFilter2D filter = new ContactFilter2D();
-        filter.SetLayerMask(LayerMask.GetMask("PuzzlePiece")); // 假设碎片都在 Pieces 层
+        filter.SetLayerMask(LayerMask.GetMask("PuzzlePiece"));
         List<Collider2D> results = new List<Collider2D>();
 
         if (myCol.OverlapCollider(filter, results) > 0)
@@ -441,6 +455,21 @@ public class DraggableComponent : MonoBehaviour
                     if (GetOverlapAreaWith(other) > 0.05) return true;
                 }
             }
+        }
+        return false;
+    }
+
+    bool IsIntersectingWithOthers2()
+    {
+        // 1. 先用 Unity 自带的 Collider 快速过滤
+        PolygonCollider2D myCol = GetComponent<PolygonCollider2D>();
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.SetLayerMask(LayerMask.GetMask("PuzzlePiece"));
+        List<Collider2D> results = new List<Collider2D>();
+
+        if (myCol.OverlapCollider(filter, results) > 0)
+        {
+            return true;
         }
         return false;
     }
@@ -534,6 +563,69 @@ public class DraggableComponent : MonoBehaviour
     }
 
 
+
+
+    /// <summary>
+    /// 检查碎片是否有大部分在正方形内.
+    /// </summary>
+    /// <returns>如果大部分顶点在框内则返回true，否则返回false</returns>
+    bool CheckIfMajorityInside()
+    {
+        if (puzzlePiece.points == null || puzzlePiece.points.Count == 0)
+            return false;
+        
+        int insideCount = 0;
+        
+        foreach (Vector2 p in puzzlePiece.points)
+        {
+            // 将碎片的本地顶点坐标转换为世界坐标
+            Vector2 worldVtx = transform.TransformPoint(p);
+
+            // 检查顶点是否在正方形边界内
+            if (worldVtx.x >= squareBounds.xMin - 0.05f && worldVtx.x <= squareBounds.xMax + 0.05f &&
+                worldVtx.y >= squareBounds.yMin - 0.05f && worldVtx.y <= squareBounds.yMax + 0.05f)
+            {
+                insideCount++;
+            }
+        }
+        
+        // 如果超过一半的顶点在框内，则认为大部分在框内
+        return insideCount > puzzlePiece.points.Count / 2;
+    }
+
+    /// <summary>
+    /// 检查碎片是否大部分在正方形内 (使用面积方法).
+    /// </summary>
+    /// <returns>如果碎片大部分面积在框内则返回true，否则返回false</returns>
+    bool CheckIfMajorityAreaInside()
+    {
+        // Get the world path of the current piece
+        Path64 piecePath = GetWorldPath(100.0); // Use a scale for precision
+        
+        // Create a rectangle path representing the square bounds
+        Path64 boundsPath = new Path64();
+        boundsPath.Add(new Point64(squareBounds.xMin * 100.0, squareBounds.yMax * 100.0)); // Top-left
+        boundsPath.Add(new Point64(squareBounds.xMax * 100.0, squareBounds.yMax * 100.0)); // Top-right
+        boundsPath.Add(new Point64(squareBounds.xMax * 100.0, squareBounds.yMin * 100.0)); // Bottom-right
+        boundsPath.Add(new Point64(squareBounds.xMin * 100.0, squareBounds.yMin * 100.0)); // Bottom-left
+        
+        // Calculate the total area of the piece
+        double totalArea = System.Math.Abs(Clipper.Area(piecePath));
+        
+        // Calculate the intersection area between piece and bounds
+        Paths64 intersection = Clipper.Intersect(new Paths64 { piecePath }, new Paths64 { boundsPath }, FillRule.NonZero);
+        
+        double intersectionArea = 0;
+        foreach (var path in intersection) {
+            intersectionArea += System.Math.Abs(Clipper.Area(path));
+        }
+        
+        // Define threshold for "majority" (e.g., 50%)
+        double majorityThreshold = 0.5; // 50% of the piece should be inside the frame
+        
+        return (intersectionArea / totalArea) >= majorityThreshold && totalArea > 0;
+    }
+
     /// <summary>
     /// 检查碎片是否完全在正方形内.
     /// </summary>
@@ -554,6 +646,8 @@ public class DraggableComponent : MonoBehaviour
         }
         return true;
     }
+
+
 
     public Path64 GetWorldPath(double scale)
     {
