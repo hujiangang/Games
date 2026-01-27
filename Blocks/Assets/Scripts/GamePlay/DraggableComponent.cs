@@ -83,15 +83,24 @@ public class DraggableComponent : MonoBehaviour
     public void FollowMouse(Vector2 worldMousePos)
     {
         if (GamePlay.isGlobalLocked) return;
-        transform.position = (Vector3)(worldMousePos + (Vector2)offset);
+        
+        // Smoothly move towards the target position to prevent jerky movements
+        Vector3 targetPosition = (Vector3)(worldMousePos + (Vector2)offset);
+        transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * 20f); // Adjust speed as needed
     }
 
     public void StopDragging(Vector2 worldMousePos)
     {
         if (GamePlay.isGlobalLocked) return;
 
+        Debug.Log("StopDragging--------------------------------------");
+
         // Only proceed with snapping if the majority of the piece is inside the frame
-        if (!CheckIfMajorityInside()) return;
+        if (!CheckIfMajorityInside()) {
+            // Even if not majority inside, still update position to where mouse was released
+            transform.position = (Vector3)(worldMousePos + (Vector2)offset);
+            return;
+        }
 
         Vector3 targetPos;
         if (TrySnapToAnyEdge(out targetPos))
@@ -201,14 +210,10 @@ public class DraggableComponent : MonoBehaviour
                     float dist = Vector2.Dot(target.start - p1, normal);
                     float absDist = Mathf.Abs(dist);
 
-
-                    Debug.Log($"absDist: {absDist},dotValue : {dotValue}");
-
                     // 检查距离和重叠
                     if (absDist < snapThreshold &&
                         IsSegmentsOverlapping(p1, p2, target.start, target.end))
                     {
-                        Debug.Log($"dist: {dist}");
                         if (absDist < bestMatchScore)
                         {
                             bestMatchScore = absDist;
