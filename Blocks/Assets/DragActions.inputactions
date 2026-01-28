@@ -1,0 +1,77 @@
+{
+    "version": 1,
+    "name": "DragActions",
+    "maps": [
+        {
+            "name": "DragMap",
+            "id": "c73d283d-f420-4ece-8469-2ec1dffb7066",
+            "actions": [
+                {
+                    "name": "Drag",
+                    "type": "Button",
+                    "id": "5a956ec5-4fbb-4328-8f60-ca74d003ab92",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "DragPosition",
+                    "type": "Value",
+                    "id": "371291e9-2d71-473e-a308-bd732bc406f2",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "5a2341ff-a8d9-422d-84b9-d891be3c3ffb",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Drag",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5c70ddb2-c917-4369-98b0-c194222de0b3",
+                    "path": "<Mouse>/press",
+                    "interactions": "Hold",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Drag",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "694f3da7-76c8-4007-8784-39bffa1c25c0",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "Press(behavior=1)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Drag",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d57bb43e-cf5f-4b23-b056-72107650e8d9",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DragPosition",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
