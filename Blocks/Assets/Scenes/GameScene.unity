@@ -1177,7 +1177,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 20
   field of view: 60
   orthographic: 1
   orthographic size: 5
@@ -2968,9 +2968,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1737576502}
   - component: {fileID: 1737576503}
-  - component: {fileID: 1737576504}
   - component: {fileID: 1737576505}
   - component: {fileID: 1737576506}
+  - component: {fileID: 1737576507}
   m_Layer: 0
   m_Name: Game
   m_TagString: Untagged
@@ -3009,18 +3009,6 @@ MonoBehaviour:
   spawnCenter: {x: 0, y: -2.06, z: 0}
   spawnRadius: 1.2
   currentLevel: 7
---- !u!114 &1737576504
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1737576501}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 150f47c5d171f3341937a2673a6a1e72, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1737576505
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3052,6 +3040,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   autoAddToAllButtons: 1
+--- !u!114 &1737576507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737576501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 150f47c5d171f3341937a2673a6a1e72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1767049436
 GameObject:
   m_ObjectHideFlags: 0

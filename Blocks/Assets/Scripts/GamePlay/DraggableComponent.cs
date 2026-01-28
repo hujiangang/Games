@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Clipper2Lib;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// 拖拽功能.
@@ -37,6 +38,7 @@ public class DraggableComponent : MonoBehaviour
     private Rect squareBounds;
 
     private Vector3 framePos;
+    public int sortingOrder;
 
     /// <summary>
     /// 正确位置吸附阈值 - 距离正确位置多近时强制吸附.
@@ -49,11 +51,12 @@ public class DraggableComponent : MonoBehaviour
         puzzlePiece = GetComponent<PuzzlePiece>();
     }
 
-    public void Init(Rect rect, Vector3 correctPos, Vector3 framePos)
+    public void Init(Rect rect, Vector3 correctPos, Vector3 framePos, int sortingOrder)
     {
         squareBounds = rect;
         correctWorldPos = correctPos;
         this.framePos = framePos;
+        this.sortingOrder = sortingOrder;
     }
 
 
@@ -75,6 +78,7 @@ public class DraggableComponent : MonoBehaviour
         // 视觉提升
         globalTopOrder++;
         m_Renderer.sortingOrder = globalTopOrder;
+        sortingOrder = globalTopOrder;
 
         // 计算偏移量
         offset = (Vector2)transform.position - worldMousePos;
@@ -83,10 +87,12 @@ public class DraggableComponent : MonoBehaviour
     public void FollowMouse(Vector2 worldMousePos)
     {
         if (GamePlay.isGlobalLocked) return;
-        
+        //transform.position = worldMousePos;
+
         // Smoothly move towards the target position to prevent jerky movements
         Vector3 targetPosition = (Vector3)(worldMousePos + (Vector2)offset);
-        transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * 20f); // Adjust speed as needed
+        transform.position = targetPosition;
+        //transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * 20f); // Adjust speed as needed
     }
 
     public void StopDragging(Vector2 worldMousePos)

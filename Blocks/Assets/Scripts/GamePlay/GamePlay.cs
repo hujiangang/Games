@@ -169,7 +169,7 @@ public class GamePlay : MonoBehaviour
 
             // 2. 添加游戏逻辑
             DraggableComponent gp = go.AddComponent<DraggableComponent>();
-            gp.Init(targetFrameRect, pp.transform.position + framePos, framePos);
+            gp.Init(targetFrameRect, pp.transform.position + framePos, framePos, piecesCount);
 
             //以 spawnCenter 为中心，在 spawnRadius 半径内随机取点.
             float minRadius = 0.8f; // 中间留空
@@ -287,17 +287,13 @@ public class GamePlay : MonoBehaviour
         foreach (var p in pieces)
         {
             if (p == null) continue;
-            // 关键：判断碎片是否处于吸附状态（需确保DraggableComponent有IsSnapped属性）
-            // 如果你的吸附标记字段不是IsSnapped，替换为你实际的字段名（比如isAttached/snapped）
             if (p.isSnapped)
             {
                 snappedPieceCount++;
             }
         }
 
-        // 基础校验：吸附数量不足直接返回（比如要求至少90%的碎片完成吸附）
-        float snappedThreshold = 0.9f; // 可调整：比如0.9=90%碎片吸附才判定
-        if (snappedPieceCount < pieces.Length * snappedThreshold)
+        if (snappedPieceCount < pieces.Length)
         {
             Debug.Log($"[拼图检测] ✗ 未完成，原因：吸附碎片不足({snappedPieceCount}/{pieces.Length})");
             return;
