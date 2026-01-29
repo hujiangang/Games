@@ -273,7 +273,7 @@ public class GamePlay : MonoBehaviour
     {
         if (isGlobalLocked) return;
 
-        const double Scale = 1000.0;
+        const double Scale = 2000.0;
         DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
 
         if (pieces == null || pieces.Length == 0)

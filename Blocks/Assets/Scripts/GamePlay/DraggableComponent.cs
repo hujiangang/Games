@@ -104,7 +104,7 @@ public class DraggableComponent : MonoBehaviour
         // Only proceed with snapping if the majority of the piece is inside the frame
         if (!CheckIfMajorityInside()) {
             // Even if not majority inside, still update position to where mouse was released
-            transform.position = (Vector3)(worldMousePos + (Vector2)offset);
+            //transform.position = (Vector3)(worldMousePos + (Vector2)offset);
             return;
         }
 
@@ -114,7 +114,9 @@ public class DraggableComponent : MonoBehaviour
             // 直接瞬时吸附到目标位置
             transform.position = targetPos;
             isSnapped = true;
-            
+
+            Debug.Log($"Piece snapped to position: ({targetPos.x}, {targetPos.y}, {targetPos.z})");
+
             // 触发吸附事件
             GameEvents.InvokeBasicEvent(GameBasicEvent.PieceSnapped);
             GameEvents.InvokeBasicEvent(GameBasicEvent.CheckFinish);
@@ -131,13 +133,18 @@ public class DraggableComponent : MonoBehaviour
         float distanceToCorrect = Vector3.Distance(originalPos, correctWorldPos);
         if (distanceToCorrect < snapCorrectPosThreshold)
         {
+            Debug.Log("Snapping to correct position.");
             targetPos = correctWorldPos;
             if (!IsPositionInvalid(targetPos)) return true;
         }
 
         // 2. 边平行且距离近的情况.
         GetEdgeParallelSnap(allTargets, originalPos, out targetPos);
-        if (!IsPositionInvalid(targetPos)) return true;
+        if (!IsPositionInvalid(targetPos))
+        {
+            Debug.Log("Snapping to parallel edge position.");
+            return true;
+        }
     
         return false;
     }
