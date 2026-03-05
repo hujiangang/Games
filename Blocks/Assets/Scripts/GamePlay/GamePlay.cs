@@ -235,182 +235,106 @@ public class GamePlay : MonoBehaviour
         lr.numCapVertices = 4;
     }
 
-    /// <summary>
-    /// 采样点检测完成（备用方法）
-    /// </summary>
-    public void CheckFinish2()
-    {
-        // 1. 采样检测点 (比如每 0.5 一个点)
-        int pointsFilled = 0;
-        int totalSamples = 0;
-        float sampleStep = 0.3f;
-
-        for (float x = targetFrameRect.min.x + 0.1f; x < targetFrameRect.max.x; x += sampleStep)
-        {
-            for (float y = targetFrameRect.min.y + 0.1f; y < targetFrameRect.max.y; y += sampleStep)
-            {
-                totalSamples++;
-                // 发射极短的射线检测这里是否有碎片
-                if (Physics2D.OverlapPoint(new Vector2(x, y)))
-                {
-                    pointsFilled++;
-                }
-            }
-        }
-
-        // 3. 如果 98% 的点都被覆盖了，说明拼图完成
-        float fillPercent = (float)pointsFilled / totalSamples;
-        if (fillPercent > 0.98f)
-        {
-            GamePlay.isGlobalLocked = true;
-            Debug.Log("恭喜！拼图完成（采样点检测）！");
-            DoVictory();
-        }
-        Debug.Log($"采样点覆盖比例: {fillPercent:P2}, 已覆盖: {pointsFilled}/{totalSamples}");
-    }
-
     public void CheckFinish6()
     {
         if (isGlobalLocked) return;
 
+        // 使用较高的 Scale 保证 Clipper 整数运算精度
         const double Scale = 2000.0;
-        DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
+        PuzzlePiece[] pieces = FindObjectsOfType<PuzzlePiece>(); // 确保获取的是碎片组件
 
-        if (pieces == null || pieces.Length == 0)
-        {
-            Debug.Log("[拼图检测] 无有效碎片，检测终止");
-            return;
-        }
+        if (pieces == null || pieces.Length == 0) return;
 
-        // ========== 新增：第一步先统计吸附的碎片数量 ==========
-        int snappedPieceCount = 0; // 已成功吸附的碎片数
+        // 1. 统计吸附情况
+        int snappedPieceCount = 0;
         foreach (var p in pieces)
         {
-            if (p == null) continue;
-            if (p.isSnapped)
+            // 假设你的 DraggableComponent 挂在 PuzzlePiece 同一级或可以通过 GetComponent 获取
+            var draggable = p.GetComponent<DraggableComponent>();
+            if (draggable != null && draggable.isSnapped)
             {
                 snappedPieceCount++;
             }
         }
 
+        // 强制校验：如果吸附数量没达标，直接判错（提高性能，避免复杂几何运算）
         if (snappedPieceCount < pieces.Length)
         {
-            Debug.Log($"[拼图检测] ✗ 未完成，原因：吸附碎片不足({snappedPieceCount}/{pieces.Length})");
+            Debug.Log($"[拼图检测] ✗ 未完成：吸附进度({snappedPieceCount}/{pieces.Length})");
             return;
         }
 
-        // 1. 收集所有碎片的世界坐标路径
+        // 2. 收集所有碎片的世界坐标路径并合并
         Paths64 allPaths = new Paths64();
-        int validPieceCount = 0;
         int piecesInFrame = 0;
 
         foreach (var p in pieces)
         {
-            if (p == null || p.GetComponent<PuzzlePiece>() == null) continue;
-
+            // 将本地坐标点 points 转换为世界坐标 Path64
             Path64 path = GetPieceWorldPath(p, Scale);
             if (path.Count >= 3)
             {
                 allPaths.Add(path);
-                validPieceCount++;
-
-                Vector2 pieceCenter = p.transform.position;
-                if (targetFrameRect.Contains(pieceCenter))
+                
+                // 简单的框内检测
+                if (targetFrameRect.Contains(p.transform.position))
                 {
                     piecesInFrame++;
                 }
             }
         }
 
-        // 基础校验：碎片必须大部分在框内
-        if (piecesInFrame < pieces.Length * 0.95)
-        {
-            Debug.Log($"[拼图检测] 碎片不在框内: {piecesInFrame}/{pieces.Length}，未完成");
-            return;
-        }
-
-        if (validPieceCount < pieces.Length * 0.8)
-        {
-            Debug.Log($"[拼图检测] 有效碎片不足: {validPieceCount}/{pieces.Length}，未完成");
-            return;
-        }
-
-        // 2. 合并所有碎片（并集运算）
+        // 3. 执行合并（Union）
+        // 因为是无缝切割，完美拼合时 Union 后的结果应该只有一个大的多边形
         Paths64 unionPieces = Clipper.Union(allPaths, FillRule.NonZero);
 
-        // 轻微膨胀弥合缝隙
-        double inflateValue = 0.0015 * Scale;
-        Paths64 healedPieces = Clipper.InflatePaths(unionPieces, inflateValue,
+        // 4. 微量膨胀 (Healing)
+        // 现在的缝隙几乎为0，膨胀 0.0005 只是为了让那些由于 Transform 坐标精度
+        // 导致的“极微小缝隙”（肉眼不可见）在合并时彻底连通。
+        double tinyInflate = 0.0005 * Scale; 
+        Paths64 healedPieces = Clipper.InflatePaths(unionPieces, tinyInflate, 
             JoinType.Miter, EndType.Polygon, 2.0);
 
-        // 3. 创建目标框路径
+        // 5. 与目标框进行比对
         Paths64 framePaths = CreateTargetFramePath(Scale);
-        if (framePaths == null || framePaths.Count == 0)
-        {
-            Debug.LogError("[拼图检测] 目标框路径创建失败");
-            return;
-        }
-
-        // 4. 计算碎片与目标框的交集
         Paths64 intersection = Clipper.Intersect(healedPieces, framePaths, FillRule.NonZero);
 
-        // 5. 计算核心面积指标
-        double intersectionArea = 0;
+        // 6. 面积计算
+        double totalIntersectionArea = 0;
         double maxIslandArea = 0;
-        int significantIslands = 0;
 
         foreach (var path in intersection)
         {
-            double area = System.Math.Abs(Clipper.Area(path));
-            intersectionArea += area;
-
-            if (area > maxIslandArea) maxIslandArea = area;
-
-            double areaRatio = (area / (Scale * Scale)) / frameArea;
-            if (areaRatio > 0.01f)
-            {
-                significantIslands++;
-            }
+            double a = System.Math.Abs(Clipper.Area(path));
+            totalIntersectionArea += a;
+            if (a > maxIslandArea) maxIslandArea = a;
         }
 
-        intersectionArea /= (Scale * Scale);
-        maxIslandArea /= (Scale * Scale);
+        // 反缩放回世界坐标系的面积
+        double finalArea = totalIntersectionArea / (Scale * Scale);
+        double finalMaxIsland = maxIslandArea / (Scale * Scale);
+        double coverageRatio = finalArea / frameArea;
+        double mainIslandRatio = finalMaxIsland / frameArea;
 
-        double coverageRatio = intersectionArea / frameArea;
-        double mainIslandRatio = maxIslandArea / frameArea;
+        Debug.Log($"[检测反馈] 覆盖率:{coverageRatio:P2}, 最大连通率:{mainIslandRatio:P2}, 框内:{piecesInFrame}/{pieces.Length}");
 
-        Debug.Log($"[拼图检测] 总覆盖率: {coverageRatio:P2}, 最大区域覆盖率: {mainIslandRatio:P2}, " +
-                  $"显著区域数: {significantIslands}, 总区域数: {intersection.Count}, " +
-                  $"框内碎片数: {piecesInFrame}/{pieces.Length}, 吸附碎片数: {snappedPieceCount}/{pieces.Length}");
+        // 7. 最终判定条件
+        // 因为修复了缝隙，现在的覆盖率要求可以适当提高，更加严谨
+        bool isAllInFrame = piecesInFrame >= pieces.Length;
+        bool isCoverageHigh = coverageRatio >= 0.99f; // 无缝切割后，99% 是非常安全的
+        bool isMainIslandComplete = mainIslandRatio >= 0.98f; // 绝大部分面积必须是连在一起的一块
 
-        // 🌟 核心修改：适配多圈层拼图的判定逻辑（保留原有逻辑）
-        bool isMultiLayerPuzzle = significantIslands >= pieces.Length * 0.7;
-        bool condition1 = coverageRatio >= 0.96f && piecesInFrame >= pieces.Length;
-        bool condition2 = coverageRatio >= 0.98f;
-        bool condition3 = !isMultiLayerPuzzle && mainIslandRatio >= 0.95f;
-
-        // 新增：最终判定时也校验吸附数量（确保100%吸附）
-        bool isAllSnapped = snappedPieceCount == pieces.Length;
-        if ((condition1 || condition2 || condition3) && isAllSnapped)
+        if (isCoverageHigh && isMainIslandComplete && isAllInFrame)
         {
-            Debug.Log($"[拼图检测] ✓ 完成! 条件1={condition1}, 条件2={condition2}, 条件3={condition3}, 吸附数达标={isAllSnapped}");
+            Debug.Log("✓ [拼图完成] 完美契合！");
             DoVictory();
         }
         else
         {
-            string reason = "";
-            if (!isAllSnapped)
-                reason = $"吸附碎片不足({snappedPieceCount}/{pieces.Length})"; // 优先显示吸附不足
-            else if (coverageRatio < 0.95)
-                reason = $"覆盖率不足({coverageRatio:P2})";
-            else if (piecesInFrame < pieces.Length)
-                reason = $"碎片不在框内({piecesInFrame}/{pieces.Length})";
-            else if (!isMultiLayerPuzzle && mainIslandRatio < 0.95)
-                reason = $"最大连续区域不足({mainIslandRatio:P2})";
-            else
-                reason = "拼图结构特殊，但未满足其他条件";
-
-            Debug.Log($"[拼图检测] ✗ 未完成，原因：{reason}");
+            // 给出具体不通过的原因
+            string reason = !isAllInFrame ? "碎片位置偏移" : 
+                            (!isCoverageHigh ? "覆盖率不足" : "未完全拼合成整体");
+            Debug.Log($"✗ [未完成] 原因: {reason}");
         }
     }
 
@@ -508,171 +432,6 @@ public class GamePlay : MonoBehaviour
         Debug.Log($"[旧方法] 填充区域面积: {fillArea}, 目标面积: {frameArea}, 比例: {ratio:F4}");
     }
 
-    [System.Obsolete("请使用优化后的CheckFinish6方法")]
-    public void CheckFinish3()
-    {
-        Debug.LogWarning("CheckFinish3方法已过时，存在依赖isSnapped的bug，请切换到CheckFinish6");
-        // 原有逻辑保留，仅做警告
-        const double Scale = 1000.0;
-        Paths64 allSnappedPaths = new();
-
-        DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
-        foreach (var p in pieces)
-        {
-            if (p.isSnapped)
-            {
-                Path64 path = GetPieceWorldPath(p, Scale);
-                allSnappedPaths.Add(path);
-            }
-        }
-
-        if (allSnappedPaths.Count < pieces.Length) return;
-
-        Paths64 unionResult = Clipper.Union(allSnappedPaths, FillRule.NonZero);
-        double currentArea = 0;
-        foreach (var path in unionResult)
-        {
-            currentArea += System.Math.Abs(Clipper.Area(path));
-        }
-        currentArea /= (Scale * Scale);
-
-        double ratio = currentArea / frameArea;
-        Debug.Log($"[旧方法] 合并后面积: {currentArea}, 比例: {ratio:F4}, 路径数: {unionResult.Count}");
-
-        if (ratio >= 0.95f && ratio <= 1.01f && unionResult.Count == 1)
-        {
-            DoVictory();
-        }
-    }
-
-    [System.Obsolete("请使用优化后的CheckFinish6方法")]
-    public void CheckFinish4()
-    {
-        Debug.LogWarning("CheckFinish4方法已过时，存在膨胀参数不合理的bug，请切换到CheckFinish6");
-        // 原有逻辑保留，仅做警告
-        const double Scale = 1000.0;
-        DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
-
-        int snappedCount = 0;
-        Paths64 allPaths = new();
-        foreach (var p in pieces)
-        {
-            if (p.isSnapped)
-            {
-                snappedCount++;
-                allPaths.Add(GetPieceWorldPath(p, Scale));
-            }
-        }
-
-        if (snappedCount < pieces.Length)
-        {
-            Debug.Log($"[旧方法] 已吸附: {snappedCount}/{pieces.Length}, 未完成");
-            return;
-        }
-
-        Paths64 combined = Clipper.Union(allPaths, FillRule.NonZero);
-        Paths64 healed = Clipper.InflatePaths(combined, 0.005 * Scale, JoinType.Miter, EndType.Polygon);
-
-        double totalFillArea = 0;
-        double maxIslandArea = 0;
-        foreach (var path in healed)
-        {
-            double a = System.Math.Abs(Clipper.Area(path));
-            totalFillArea += a;
-            if (a > maxIslandArea) maxIslandArea = a;
-        }
-
-        totalFillArea /= (Scale * Scale);
-        maxIslandArea /= (Scale * Scale);
-
-        double totalRatio = totalFillArea / frameArea;
-        double mainIslandRatio = maxIslandArea / frameArea;
-
-        Debug.Log($"[旧方法] 总比例: {totalRatio:F4}, 最大岛比例: {mainIslandRatio:F4}, 路径数: {healed.Count}");
-
-        bool condition1 = mainIslandRatio >= 0.95f;
-        bool condition2 = healed.Count == 1 && totalRatio >= 0.96f;
-
-        if (condition1 || condition2)
-        {
-            Debug.Log($"[旧方法] ✓ 完成! 条件1={condition1}, 条件2={condition2}");
-            DoVictory();
-        }
-        else
-        {
-            Debug.Log($"[旧方法] ✗ 未完成. 条件1={condition1}, 条件2={condition2}");
-        }
-    }
-
-    [System.Obsolete("请使用优化后的CheckFinish6方法")]
-    public void CheckFinish5()
-    {
-        Debug.LogWarning("CheckFinish5方法已过时，存在膨胀参数和判定阈值不合理的bug，请切换到CheckFinish6");
-        // 原有逻辑保留，仅做警告
-        const double Scale = 1000.0;
-        DraggableComponent[] pieces = FindObjectsOfType<DraggableComponent>();
-
-        Paths64 allPaths = new();
-        foreach (var p in pieces)
-        {
-            allPaths.Add(GetPieceWorldPath(p, Scale));
-        }
-
-        Paths64 unionPieces = Clipper.Union(allPaths, FillRule.NonZero);
-        Debug.Log($"[旧方法] 合并后: {unionPieces.Count} 个区域");
-
-        Paths64 healed = Clipper.InflatePaths(unionPieces, 0.008 * Scale, JoinType.Miter, EndType.Polygon);
-        Debug.Log($"[旧方法] 膨胀后: {healed.Count} 个区域");
-
-        Path64 framePath = new();
-        Vector3 framePos = GameObject.Find("TargetFrame").transform.position;
-        float L = CutterManager.cutterLength;
-        framePath.Add(new Point64((framePos.x - L) * Scale, (framePos.y + L) * Scale));
-        framePath.Add(new Point64((framePos.x + L) * Scale, (framePos.y + L) * Scale));
-        framePath.Add(new Point64((framePos.x + L) * Scale, (framePos.y - L) * Scale));
-        framePath.Add(new Point64((framePos.x - L) * Scale, (framePos.y - L) * Scale));
-        Paths64 framePaths = new() { framePath };
-
-        Paths64 intersection = Clipper.Intersect(healed, framePaths, FillRule.NonZero);
-
-        double intersectionArea = 0;
-        double maxIslandArea = 0;
-
-        foreach (var path in intersection)
-        {
-            double area = System.Math.Abs(Clipper.Area(path));
-            intersectionArea += area;
-            if (area > maxIslandArea) maxIslandArea = area;
-        }
-
-        intersectionArea /= (Scale * Scale);
-        maxIslandArea /= (Scale * Scale);
-
-        double coverageRatio = intersectionArea / frameArea;
-        double mainIslandRatio = maxIslandArea / frameArea;
-
-        Debug.Log($"[旧方法] 交集面积: {intersectionArea:F4}, 覆盖率: {coverageRatio:F4}, 最大岛: {mainIslandRatio:F4}, 路径数: {intersection.Count}");
-
-        bool condition1 = intersection.Count == 1 && coverageRatio >= 0.94f;
-        bool condition2 = mainIslandRatio >= 0.93f;
-
-        Debug.Log($"[旧方法] 判定结果: 条件1={condition1}, 条件2={condition2}");
-
-        if (condition1 || condition2)
-        {
-            Debug.Log($"[旧方法] ✓ 完成! 条件1={condition1}, 条件2={condition2}");
-            DoVictory();
-        }
-        else if (coverageRatio >= 0.93f)
-        {
-            Debug.Log($"[旧方法] ✗ 覆盖率足够但有 {intersection.Count} 个分离区域，最大岛{mainIslandRatio:P}");
-        }
-        else
-        {
-            Debug.Log($"[旧方法] ✗ 覆盖率不足 ({coverageRatio:P})");
-        }
-    }
-
     // 在编辑器里画出托盘区域，方便调试
     void OnDrawGizmos()
     {
@@ -695,17 +454,15 @@ public class GamePlay : MonoBehaviour
     /// <summary>
     /// 获取碎片的世界坐标路径（封装，解决原有GetWorldPath缺失问题）
     /// </summary>
-    private Path64 GetPieceWorldPath(DraggableComponent piece, double scale)
+    private Path64 GetPieceWorldPath(PuzzlePiece piece, double scale)
     {
         Path64 path = new Path64();
-        PuzzlePiece puzzlePiece = piece.GetComponent<PuzzlePiece>();
-
-        foreach (var v in puzzlePiece.points)
+        foreach (var localPt in piece.points)
         {
-            Vector2 wPos = piece.transform.TransformPoint(v);
-            path.Add(new Point64(wPos.x * scale, wPos.y * scale));
+            // 关键：必须 TransformPoint 转为世界坐标
+            Vector3 worldPt = piece.transform.TransformPoint(localPt);
+            path.Add(new Point64(worldPt.x * scale, worldPt.y * scale));
         }
-
         return path;
     }
 
