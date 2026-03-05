@@ -6,39 +6,77 @@ using UnityEngine;
 
 public static class Clipper2CutterHelper
 {
-    public static List<List<Vector2>> CutPolygon(List<Vector2> polygon, List<Vector2> path, float cutWidth = 0.015f)
+    public static List<List<Vector2>> CutPolygon(List<Vector2> polygon, List<Vector2> path, float cutWidth = 0.0f) 
     {
+        // 如果 cutWidth 非常小或为0，我们执行“无缝切割”逻辑
         // 1. 设置主体
         PathD subjPath = new PathD();
         foreach (var v in polygon) subjPath.Add(new PointD(v.x, v.y));
         PathsD subj = new PathsD { subjPath };
 
-        // 2. 设置划线
-        PathD clipLine = new PathD();
-        foreach (var v in path) clipLine.Add(new PointD(v.x, v.y));
-        PathsD clipPaths = new PathsD { clipLine };
+        // 2. 将折线路径转换为一个“巨大的切割多边形”
+        // 这个多边形会把原物体分成“左/右”或“上/下”两部分
+        PathsD cuttingPoly = CreateHalfPlanePolygon(path, subjPath);
 
-        // 3. 膨胀路径（把线变成有厚度的长条）
-        // EndType.Square 很重要，它能确保线头线尾多伸出去一点，彻底切断边界
-        PathsD inflatedClip = Clipper.InflatePaths(clipPaths, cutWidth / 2.0, JoinType.Miter, EndType.Square);
+        // 3. 执行切割：
+        // 第一部分 = 原物体 INTERSECT 切割面 (交集)
+        PathsD partA = Clipper.BooleanOp(ClipType.Intersection, subj, cuttingPoly, FillRule.EvenOdd);
+        
+        // 第二部分 = 原物体 DIFFERENCE 切割面 (差集)
+        PathsD partB = Clipper.BooleanOp(ClipType.Difference, subj, cuttingPoly, FillRule.EvenOdd);
 
-        // 4. 执行差集运算 (Subject - Clip)
-        // 使用 EvenOdd 填充规则，对于自相交折线更稳健
-        PathsD solution = Clipper.BooleanOp(ClipType.Difference, subj, inflatedClip, FillRule.EvenOdd);
-
-        // 5. 【核心修复】：返回所有分离的区域
+        // 4. 合并结果
         List<List<Vector2>> results = new List<List<Vector2>>();
-        foreach (var solPath in solution)
-        {
-            // 过滤掉因为膨胀产生的微小细条（碎片面积太小则忽略）
-            if (Clipper.Area(solPath) < 0.01) continue;
+        
+        // 转换结果函数（过滤小碎片）
+        System.Action<PathsD> addResults = (PathsD solution) => {
+            foreach (var solPath in solution) {
+                if (Math.Abs(Clipper.Area(solPath)) < 0.001) continue; // 过滤面积过小的杂质
+                List<Vector2> pts = new List<Vector2>();
+                foreach (var pt in solPath) pts.Add(new Vector2((float)pt.x, (float)pt.y));
+                if (pts.Count >= 3) results.Add(pts);
+            }
+        };
 
-            List<Vector2> pts = new List<Vector2>();
-            foreach (var pt in solPath) pts.Add(new Vector2((float)pt.x, (float)pt.y));
+        addResults(partA);
+        addResults(partB);
 
-            if (pts.Count >= 3) results.Add(pts);
-        }
         return results;
+    }
+
+    private static PathsD CreateHalfPlanePolygon(List<Vector2> path, PathD subjPath)
+    {
+        // 1. 获取物体的包围盒，返回类型是 RectD
+        RectD bounds = Clipper.GetBounds(new PathsD { subjPath });
+
+        // 计算一个足够大的半径，确保能包围整个物体
+        double size = Math.Max(bounds.Width, bounds.Height) * 2.0;
+        if (size < 100) size = 100; // 给个最小值保底
+
+        PathD poly = new PathD();
+
+        // 2. 将原始切割折线的所有点加入多边形
+        foreach (var v in path)
+        {
+            poly.Add(new PointD(v.x, v.y));
+        }
+
+        // 3. 构建“大盖子”来闭合多边形
+        // 取折线的起点和终点
+        Vector2 start = path[0];
+        Vector2 end = path[path.Count - 1];
+
+        // 计算从起点到终点的方向向量
+        Vector2 lineDir = (end - start).normalized;
+        // 计算法线方向（垂直于切割线）
+        Vector2 normal = new Vector2(-lineDir.y, lineDir.x);
+
+        // 沿着法线方向向远处延伸两个点，围成一个巨大的矩形区域
+        // 这就像是用一张巨大的纸覆盖住物体的一侧
+        poly.Add(new PointD(end.x + normal.x * size, end.y + normal.y * size));
+        poly.Add(new PointD(start.x + normal.x * size, start.y + normal.y * size));
+
+        return new PathsD { poly };
     }
 
     /// <summary>
