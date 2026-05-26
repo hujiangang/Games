@@ -12,6 +12,8 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private GameObject unitGameObject;
 
+    private float spawnHeight = 0f; // Adjust as needed for unit's height
+
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
@@ -24,6 +26,9 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         originalPosition = rectTransform.anchoredPosition;
 
         Vector3 worldPos = GetMouseWorldPos(eventData);
+        spawnHeight = unitData.prefab.transform.position.y;
+        Debug.Log($"Spawning unit at world position: {unitData.prefab.transform.position}");
+        
         unitGameObject = Instantiate(unitData.prefab, worldPos, Quaternion.identity);
     }
 
@@ -44,6 +49,7 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
             Vector3 position = hit.point;
+            position.y = spawnHeight;
             unitGameObject.transform.position = position;
         }
         // Reset card position after drag ends
@@ -52,10 +58,18 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private Vector3 GetMouseWorldPos(PointerEventData eventData)
     {
-        float planeDistance = 20f;
+        float planeDistance = 25f;
         Vector3 worldPos = Camera.main.ScreenToWorldPoint(
             new Vector3(eventData.position.x, eventData.position.y, Camera.main.nearClipPlane + planeDistance)
         );
         return worldPos;
+    }
+
+    private Vector3 GetSafePreviewPosition(Vector2 screenPos)
+    {
+        float previewPlaneDistance = 25f;
+        return Camera.main.ScreenToWorldPoint(
+            new Vector3(screenPos.x, screenPos.y, Camera.main.nearClipPlane + previewPlaneDistance)
+        );
     }
 }
