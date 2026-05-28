@@ -4,14 +4,14 @@ namespace CRCrowdPrototype
 {
     public class BattleBootstrap : MonoBehaviour
     {
-        [Header("Optional scene wiring")]
+        [Header("可选场景绑定")]
         public LanePath leftLane;
         public LanePath rightLane;
 
-        [ContextMenu("Validate Prototype Scene")]
+        [ContextMenu("检查原型场景")]
         public void ValidatePrototypeScene()
         {
-            Debug.Log("CRCrowdPrototype bootstrap is present. Wire your spawners, lanes, and towers in the inspector.");
+            Debug.Log("CRCrowdPrototype 已挂载。请在 Inspector 里把出生点、路线和塔绑定好。");
         }
     }
 }

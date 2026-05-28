@@ -3,9 +3,13 @@ using UnityEngine;
 
 namespace CRCrowdPrototype
 {
+    /// <summary>
+    /// 攻击站位分配器.
+    /// 一群单位打同一个目标时，不乱挤、不重叠、有序站位.
+    /// </summary>
     public class AttackSlotProvider : MonoBehaviour
     {
-        [Header("Slots around a target")]
+        [Header("目标周围接近点")]
         public float slotRadius = 1.0f;
         public int slotCount = 6;
 

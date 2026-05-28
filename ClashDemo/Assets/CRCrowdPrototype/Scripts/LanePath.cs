@@ -4,9 +4,12 @@ namespace CRCrowdPrototype
 {
     public class LanePath : MonoBehaviour
     {
-        [Header("Lane Setup")]
+        [Header("路线设置")]
         public LaneSide side;
         public Transform[] waypoints;
+
+        // 路线上路点数量
+        public int Count => waypoints != null ? waypoints.Length : 0;
 
         public int GetClosestWaypointIndex(Vector3 position)
         {
@@ -28,6 +31,26 @@ namespace CRCrowdPrototype
             }
 
             return bestIndex;
+        }
+
+        public Vector3 GetWaypointPosition(int index)
+        {
+            if (waypoints == null || waypoints.Length == 0)
+                return transform.position;
+
+            index = Mathf.Clamp(index, 0, waypoints.Length - 1);
+            if (waypoints[index] == null)
+                return transform.position;
+
+            return waypoints[index].position;
+        }
+
+        public int GetNextWaypointIndex(int index)
+        {
+            if (waypoints == null || waypoints.Length == 0)
+                return -1;
+
+            return Mathf.Min(index + 1, waypoints.Length - 1);
         }
 
         public Vector3 GetForwardPoint(Vector3 position, float lookAhead = 2f)

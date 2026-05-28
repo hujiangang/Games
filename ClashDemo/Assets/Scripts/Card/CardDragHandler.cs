@@ -1,75 +1,82 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using CRCrowdPrototype;
 
 public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    [Header("Associated UnitData")]
-    public UnitData unitData; // Assigned in inspector
+    [Header("关联的单位数据")]
+    public UnitData unitData; // 在 Inspector 中指定
 
-    private RectTransform rectTransform;
-    private Canvas canvas;
-    private Vector3 originalPosition;
-
+    [Header("路线分配")]
+    public LanePath leftLane;
+    public LanePath rightLane;
+    public Transform defaultTarget;
     private GameObject unitGameObject;
 
-    private float spawnHeight = 0f; // Adjust as needed for unit's height
+    private float spawnHeightOffset = 0.5f; // 预览单位相对地面的高度偏移
 
     void Awake()
     {
-        rectTransform = GetComponent<RectTransform>();
-        canvas = GetComponentInParent<Canvas>();
+        
     }
 
-    // Save original position when drag starts
+    // 拖拽开始时，记录卡牌原位置，并生成预览单位
     public void OnBeginDrag(PointerEventData eventData)
     {
-        originalPosition = rectTransform.anchoredPosition;
+
+        if (unitData == null || unitData.prefab == null)
+            return;
 
         Vector3 worldPos = GetMouseWorldPos(eventData);
-        spawnHeight = unitData.prefab.transform.position.y;
-        Debug.Log($"Spawning unit at world position: {unitData.prefab.transform.position}");
-        
-        unitGameObject = Instantiate(unitData.prefab, worldPos, Quaternion.identity);
+        spawnHeightOffset = unitData.prefab.transform.position.y;
+        unitGameObject = Instantiate(unitData.prefab, worldPos + Vector3.up * spawnHeightOffset, Quaternion.identity);
     }
 
-    // Move card along with drag, adjusting for canvas scale
+    // 拖拽过程中，让预览单位跟随鼠标位置移动
     public void OnDrag(PointerEventData eventData)
     {
-        //rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
+        if (unitGameObject == null)
+            return;
+
         Vector3 worldPos = GetMouseWorldPos(eventData);
-        unitGameObject.transform.position = worldPos;
+        unitGameObject.transform.position = worldPos + Vector3.up * spawnHeightOffset;
     }
 
-    // On drag end, raycast to detect spawn position and send spawn command if valid
+    // 拖拽结束后，确定最终落点并初始化路线和目标
     public void OnEndDrag(PointerEventData eventData)
     {
-        Vector2 screenPos = eventData.position;
-        Ray ray = Camera.main.ScreenPointToRay(screenPos);
+        if (unitGameObject == null)
+            return;
 
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
-            Vector3 position = hit.point;
-            position.y = spawnHeight;
-            unitGameObject.transform.position = position;
-        }
-        // Reset card position after drag ends
-        //rectTransform.anchoredPosition = originalPosition;
+        Vector3 worldPos = GetMouseWorldPos(eventData);
+        unitGameObject.transform.position = worldPos + Vector3.up * spawnHeightOffset;
+        InitializePreviewUnit(worldPos);
     }
 
     private Vector3 GetMouseWorldPos(PointerEventData eventData)
     {
-        float planeDistance = 25f;
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(
-            new Vector3(eventData.position.x, eventData.position.y, Camera.main.nearClipPlane + planeDistance)
-        );
-        return worldPos;
+        Camera cam = Camera.main;
+        if (cam == null)
+            return Vector3.zero;
+
+        Ray ray = cam.ScreenPointToRay(eventData.position);
+        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+
+        if (groundPlane.Raycast(ray, out float enter))
+            return ray.GetPoint(enter);
+
+        return Vector3.zero;
     }
 
-    private Vector3 GetSafePreviewPosition(Vector2 screenPos)
+    private void InitializePreviewUnit(Vector3 worldPosition)
     {
-        float previewPlaneDistance = 25f;
-        return Camera.main.ScreenToWorldPoint(
-            new Vector3(screenPos.x, screenPos.y, Camera.main.nearClipPlane + previewPlaneDistance)
-        );
+        if (unitGameObject == null)
+            return;
+
+        if (!unitGameObject.TryGetComponent(out UnitCrowdAgent agent))
+            return;
+
+        LanePath selectedLane = worldPosition.x <= 0f ? leftLane : rightLane;
+        agent.Initialize(selectedLane, defaultTarget, unitData);
     }
 }

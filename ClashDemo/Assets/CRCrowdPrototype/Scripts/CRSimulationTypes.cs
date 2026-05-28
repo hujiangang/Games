@@ -1,36 +1,18 @@
-using System;
 using UnityEngine;
 
 namespace CRCrowdPrototype
 {
     public enum UnitState
     {
-        March,
-        Chase,
-        Attack,
-        Reposition
+        March, // 行军状态，沿路线前进.
+        Chase, // 追击状态，接近敌人.
+        Attack, // 攻击状态，施加伤害.
+        Reposition // 重新定位状态，调整位置.
     }
 
     public enum LaneSide
     {
-        Left,
-        Right
-    }
-
-    [Serializable]
-    public class UnitCrowdConfig
-    {
-        public float moveSpeed = 3.5f;
-        public float turnSpeed = 12f;
-        public float radius = 0.35f;
-        public float mass = 1f;
-        public float separationRadius = 1.2f;
-        public float separationWeight = 1.4f;
-        public float laneWeight = 1.0f;
-        public float targetWeight = 1.15f;
-        public float attackRange = 1.05f;
-        public float attackCooldown = 1f;
-        public float attackStickiness = 0.65f;
-        public float reachThreshold = 0.1f;
+        Left, // 左侧车道
+        Right // 右侧车道
     }
 }

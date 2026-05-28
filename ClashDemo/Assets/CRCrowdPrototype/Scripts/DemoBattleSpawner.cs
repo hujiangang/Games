@@ -4,23 +4,23 @@ namespace CRCrowdPrototype
 {
     public class DemoBattleSpawner : MonoBehaviour
     {
-        [Header("Prefabs")]
+        [Header("预制体")]
         public UnitCrowdAgent blueUnitPrefab;
         public UnitCrowdAgent redUnitPrefab;
 
-        [Header("Lanes")]
+        [Header("路线")]
         public LanePath blueLane;
         public LanePath redLane;
 
-        [Header("Spawn Points")]
+        [Header("出生点")]
         public Transform blueSpawnPoint;
         public Transform redSpawnPoint;
 
-        [Header("Targets")]
+        [Header("目标")]
         public Transform blueTarget;
         public Transform redTarget;
 
-        [Header("Demo Settings")]
+        [Header("演示设置")]
         public int blueCount = 8;
         public int redCount = 8;
         public float spacing = 0.6f;
@@ -49,10 +49,7 @@ namespace CRCrowdPrototype
                 Vector3 offset = offsetStep * i;
                 Vector3 position = spawnPoint.position + offset;
                 UnitCrowdAgent unit = Instantiate(prefab, position, spawnPoint.rotation);
-                unit.lane = lane;
-                unit.currentTarget = target;
-                if (target != null)
-                    unit.slotProvider = target.GetComponent<AttackSlotProvider>();
+                unit.Initialize(lane, target, unit.unitData);
             }
         }
     }

@@ -1,8 +1,11 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace CRCrowdPrototype
 {
+    /// <summary>
+    /// 群体求解器.
+    /// 让一群单位不重叠、不拥挤、不穿模的计算工具.
+    /// </summary>
     public static class CrowdSolver
     {
         private static readonly Collider[] buffer = new Collider[64];
@@ -86,7 +89,7 @@ namespace CRCrowdPrototype
         private static float GetRadius(Collider col)
         {
             if (col.TryGetComponent(out UnitCrowdAgent agent))
-                return agent.config.radius;
+                return agent.Radius;
 
             return Mathf.Max(col.bounds.extents.x, col.bounds.extents.z);
         }
