@@ -18,10 +18,21 @@ public class ServerNavMeshData
     {
         using FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         using BinaryReader reader = new BinaryReader(stream);
+        return Read(reader);
+    }
 
+    public static ServerNavMeshData Load(byte[] bytes)
+    {
+        using MemoryStream stream = new MemoryStream(bytes, false);
+        using BinaryReader reader = new BinaryReader(stream);
+        return Read(reader);
+    }
+
+    private static ServerNavMeshData Read(BinaryReader reader)
+    {
         int magic = reader.ReadInt32();
         if (magic != FileMagic)
-            throw new InvalidDataException($"NavMesh 数据文件头无效: {path}");
+            throw new InvalidDataException("NavMesh 数据文件头无效。");
 
         int version = reader.ReadInt32();
         if (version != FileVersion)

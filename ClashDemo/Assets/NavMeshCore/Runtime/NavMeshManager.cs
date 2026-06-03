@@ -1,13 +1,15 @@
 using System.Collections.Generic;
+using System.IO;
 using DotRecast.Core.Numerics;
 using DotRecast.Detour;
 using DotRecast.Detour.Crowd;
+using DotRecast.Detour.Io;
 using DotRecast.Recast;
 using DotRecast.Recast.Geom;
 using UnityEngine;
-using UnityEngine.AI;
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEngine.AI;
 #endif
 
 public class NavMeshManager : MonoBehaviour
@@ -31,10 +33,11 @@ public class NavMeshManager : MonoBehaviour
         }
     }
 
-    [Header("Unity NavMesh 资源")]
+    [Header("编辑器烘焙资源")]
     public NavMeshSettings Settings; // 全局配置
 
-    [Header("DotRecast 运行时构建")]
+    [Header("DotRecast 运行时")]
+    public bool fallbackToTaggedGeometryIfRuntimeDataMissing;
     public string walkableTag = "Walkable";
     public float crowdAgentRadius = 0.35f;
     public float crowdAgentHeight = 2f;
@@ -45,14 +48,13 @@ public class NavMeshManager : MonoBehaviour
     public int maxVertsPerPoly = 6;
     public bool buildDetailMesh = true;
 
-    private NavMeshData _navMeshData;
-    private NavMeshDataInstance _navMeshInstance;
     private DtNavMesh _dtNavMesh;
     private DtNavMeshQuery _dtNavMeshQuery;
     private DtCrowd _crowd;
     private DtQueryDefaultFilter _queryFilter;
     private RcVec3f _queryExtents = new RcVec3f(2f, 4f, 2f);
     private bool _dotRecastReady;
+    private string _loadedSource;
 
     public DtCrowd Crowd => _crowd;
     public float AgentRadius => crowdAgentRadius;
@@ -67,7 +69,9 @@ public class NavMeshManager : MonoBehaviour
         }
 
         _instance = this;
+        LoadNavMesh();
         DontDestroyOnLoad(gameObject); // 全局唯一
+        
     }
 
     private void Update()
@@ -76,20 +80,11 @@ public class NavMeshManager : MonoBehaviour
             _crowd.Update(Time.deltaTime, null);
     }
 
-    // 运行时加载烘焙好的数据（客户端）
+    // 运行时优先加载编辑器导出的 DotRecast 数据。
     public void LoadNavMesh()
     {
-        if (Settings == null)
-        {
-            Debug.LogError("NavMeshManager 缺少 NavMeshSettings 引用。");
-            return;
-        }
-
-        _navMeshData = Resources.Load<NavMeshData>(Settings.GetResourceAssetName());
-        if (_navMeshData != null)
-        {
-            _navMeshInstance = NavMesh.AddNavMeshData(_navMeshData);
-        }
+        if (EnsureDotRecastReady())
+            Debug.Log($"DotRecast 导航网格加载完成，来源：{_loadedSource}");
     }
 
     public bool EnsureDotRecastReady()
@@ -97,6 +92,16 @@ public class NavMeshManager : MonoBehaviour
         if (_dotRecastReady && _crowd != null && _dtNavMeshQuery != null)
             return true;
 
+        if (TryLoadDotRecastFromExportedData())
+            return true;
+
+        if (!fallbackToTaggedGeometryIfRuntimeDataMissing)
+        {
+            Debug.LogError("DotRecast 加载失败：没有读到导出的运行时数据，且当前已关闭场景几何兜底构建。");
+            return false;
+        }
+
+        Debug.LogWarning("DotRecast 未读取到导出数据，回退到场景 Walkable 几何临时构建。");
         return BuildDotRecastFromTaggedGeometry();
     }
 
@@ -179,7 +184,7 @@ public class NavMeshManager : MonoBehaviour
         return true;
     }
 
-    // 编辑器烘焙后调用（把数据存到Resources）
+    // 编辑器烘焙后调用（保留给编辑器资源输出）
 #if UNITY_EDITOR
     public void SaveNavMeshData(NavMeshData data)
     {
@@ -189,8 +194,49 @@ public class NavMeshManager : MonoBehaviour
     }
 #endif
 
+    private bool TryLoadDotRecastFromExportedData()
+    {
+        if (Settings == null)
+        {
+            Debug.LogError("DotRecast 加载失败：NavMeshManager 没有关联 NavMeshSettings。");
+            return false;
+        }
+
+        SyncRuntimeAgentSettings();
+
+        string resourcePath = Settings.GetRuntimeDataResourcePath();
+        TextAsset runtimeData = Resources.Load<TextAsset>(resourcePath);
+        if (runtimeData == null || runtimeData.bytes == null || runtimeData.bytes.Length == 0)
+        {
+            Debug.LogError($"DotRecast 加载失败：Resources/{resourcePath}.bytes 不存在，请先在 NavMeshBakeWindow 执行导出。");
+            return false;
+        }
+
+        try
+        {
+            using MemoryStream stream = new MemoryStream(runtimeData.bytes, false);
+            using BinaryReader reader = new BinaryReader(stream);
+            DtNavMesh navMesh = new DtMeshSetReader().Read(reader);
+            if (navMesh == null)
+            {
+                Debug.LogError($"DotRecast 加载失败：Resources/{resourcePath}.bytes 解析结果为空。");
+                return false;
+            }
+
+            InitializeRuntime(navMesh, $"Resources/{resourcePath}.bytes");
+            return true;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"DotRecast 加载失败：读取导出数据异常。{ex.Message}");
+            return false;
+        }
+    }
+
     private bool BuildDotRecastFromTaggedGeometry()
     {
+        SyncRuntimeAgentSettings();
+
         List<float> vertices = new List<float>(2048);
         List<int> triangles = new List<int>(4096);
         CollectWalkableGeometry(vertices, triangles);
@@ -223,8 +269,36 @@ public class NavMeshManager : MonoBehaviour
             return false;
         }
 
-        _dtNavMesh = new DtNavMesh();
-        _dtNavMesh.Init(meshData, result.Mesh.nvp, 0);
+        DtNavMesh navMesh = new DtNavMesh();
+        DtStatus status = navMesh.Init(meshData, result.Mesh.nvp, 0);
+        if (!status.Succeeded())
+        {
+            Debug.LogError($"DotRecast 构建失败：DtNavMesh.Init 返回 {status}。");
+            return false;
+        }
+
+        InitializeRuntime(navMesh, $"scene tagged geometry `{walkableTag}`");
+        return true;
+    }
+
+    private void SyncRuntimeAgentSettings()
+    {
+        if (Settings == null)
+            return;
+
+        crowdAgentRadius = Mathf.Max(0.01f, Settings.AgentRadius);
+        crowdAgentHeight = Mathf.Max(0.1f, Settings.AgentHeight);
+        crowdAgentClimb = Mathf.Max(cellHeight, Settings.StepHeight);
+        crowdAgentMaxSlope = Settings.MaxSlope;
+        maxVertsPerPoly = Mathf.Max(3, Settings.DotRecastMaxVertsPerPoly);
+        cellSize = Mathf.Max(0.01f, Settings.DotRecastCellSize);
+        cellHeight = Mathf.Max(0.01f, Settings.DotRecastCellHeight);
+        buildDetailMesh = Settings.DotRecastBuildDetailMesh;
+    }
+
+    private void InitializeRuntime(DtNavMesh navMesh, string sourceDescription)
+    {
+        _dtNavMesh = navMesh;
         _dtNavMeshQuery = new DtNavMeshQuery(_dtNavMesh);
         _queryFilter = new DtQueryDefaultFilter();
         _queryExtents = new RcVec3f(
@@ -236,7 +310,7 @@ public class NavMeshManager : MonoBehaviour
         _crowd = new DtCrowd(crowdConfig, _dtNavMesh);
         ConfigureObstacleAvoidance();
         _dotRecastReady = true;
-        return true;
+        _loadedSource = sourceDescription;
     }
 
     private void CollectWalkableGeometry(List<float> vertices, List<int> triangles)
