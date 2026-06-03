@@ -9,14 +9,17 @@ namespace CRCrowdPrototype
     public static class CrowdSolver
     {
         private static readonly Collider[] buffer = new Collider[64];
+        private static readonly UnitCrowdAgent[] agentBuffer = new UnitCrowdAgent[64];
 
         public static Vector3 GetSeparationDirection(Vector3 position, float selfRadius, float searchRadius, Transform self)
         {
+            Transform selfRoot = self != null ? self.root : null;
             int count = Physics.OverlapSphereNonAlloc(position, searchRadius, buffer);
             if (count <= 0)
                 return Vector3.zero;
 
             Vector3 force = Vector3.zero;
+            int uniqueAgentCount = 0;
 
             for (int i = 0; i < count; i++)
             {
@@ -24,10 +27,30 @@ namespace CRCrowdPrototype
                 if (other == null)
                     continue;
 
-                if (self != null && other.transform == self)
+                UnitCrowdAgent otherAgent = other.GetComponentInParent<UnitCrowdAgent>();
+                if (otherAgent == null)
                     continue;
 
-                Vector3 otherPos = other.transform.position;
+                if (selfRoot != null && otherAgent.transform.root == selfRoot)
+                    continue;
+
+                bool alreadyAdded = false;
+                for (int j = 0; j < uniqueAgentCount; j++)
+                {
+                    if (agentBuffer[j] == otherAgent)
+                    {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+
+                if (alreadyAdded)
+                    continue;
+
+                if (uniqueAgentCount < agentBuffer.Length)
+                    agentBuffer[uniqueAgentCount++] = otherAgent;
+
+                Vector3 otherPos = otherAgent.transform.position;
                 Vector3 delta = position - otherPos;
                 delta.y = 0f;
 
@@ -35,7 +58,7 @@ namespace CRCrowdPrototype
                 if (dist < 0.0001f)
                     continue;
 
-                float otherRadius = GetRadius(other);
+                float otherRadius = otherAgent.Radius;
                 float minDist = selfRadius + otherRadius;
                 if (dist >= minDist)
                     continue;
@@ -52,11 +75,13 @@ namespace CRCrowdPrototype
 
         public static Vector3 ApplyPushBack(Vector3 position, float selfRadius, Transform self, float searchRadius)
         {
+            Transform selfRoot = self != null ? self.root : null;
             int count = Physics.OverlapSphereNonAlloc(position, searchRadius, buffer);
             if (count <= 0)
                 return position;
 
             Vector3 correction = Vector3.zero;
+            int uniqueAgentCount = 0;
 
             for (int i = 0; i < count; i++)
             {
@@ -64,17 +89,37 @@ namespace CRCrowdPrototype
                 if (other == null)
                     continue;
 
-                if (self != null && other.transform == self)
+                UnitCrowdAgent otherAgent = other.GetComponentInParent<UnitCrowdAgent>();
+                if (otherAgent == null)
                     continue;
 
-                Vector3 delta = position - other.transform.position;
+                if (selfRoot != null && otherAgent.transform.root == selfRoot)
+                    continue;
+
+                bool alreadyAdded = false;
+                for (int j = 0; j < uniqueAgentCount; j++)
+                {
+                    if (agentBuffer[j] == otherAgent)
+                    {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+
+                if (alreadyAdded)
+                    continue;
+
+                if (uniqueAgentCount < agentBuffer.Length)
+                    agentBuffer[uniqueAgentCount++] = otherAgent;
+
+                Vector3 delta = position - otherAgent.transform.position;
                 delta.y = 0f;
 
                 float dist = delta.magnitude;
                 if (dist < 0.0001f)
                     continue;
 
-                float otherRadius = GetRadius(other);
+                float otherRadius = otherAgent.Radius;
                 float minDist = selfRadius + otherRadius;
                 if (dist >= minDist)
                     continue;
@@ -84,14 +129,6 @@ namespace CRCrowdPrototype
             }
 
             return position + correction * 0.5f;
-        }
-
-        private static float GetRadius(Collider col)
-        {
-            if (col.TryGetComponent(out UnitCrowdAgent agent))
-                return agent.Radius;
-
-            return Mathf.Max(col.bounds.extents.x, col.bounds.extents.z);
         }
     }
 }

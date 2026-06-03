@@ -377,7 +377,7 @@ GameObject:
   - component: {fileID: 3571029736346869878}
   - component: {fileID: 3716289726255135}
   - component: {fileID: 1394996299915790202}
-  - component: {fileID: -8351174527474529399}
+  - component: {fileID: -5464286888564323358}
   m_Layer: 0
   m_Name: AKKEP
   m_TagString: Unit
@@ -471,7 +471,7 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &-8351174527474529399
+--- !u!114 &-5464286888564323358
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -480,14 +480,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 5946982796112403658}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2b4a3a20713753439840243243a4870, type: 3}
+  m_Script: {fileID: 11500000, guid: 934408c9b98f1104285be1dbfe33b4a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetTower: {fileID: 0}
   unitData: {fileID: 0}
   fallbackMoveSpeed: 3.5
+  fallbackAcceleration: 18
   fallbackAttackRange: 1.05
   fallbackAttackCooldown: 1
-  lane: {fileID: 0}
-  currentTarget: {fileID: 0}
+  fallbackRadius: 0.35
+  fallbackHeight: 2
+  repathInterval: 0.35
   state: 0
-  slotProvider: {fileID: 0}

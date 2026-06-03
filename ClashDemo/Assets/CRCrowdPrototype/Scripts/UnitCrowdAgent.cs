@@ -98,6 +98,7 @@ namespace CRCrowdPrototype
             Vector3 laneDir = GetLaneMoveDirection();
             Vector3 targetDir = Vector3.zero;
             Vector3 separationDir = CrowdSolver.GetSeparationDirection(transform.position, crowdConfig.radius, crowdConfig.separationRadius, transform);
+            Vector3 lateralSeparationDir = GetLateralSeparationDirection(separationDir, laneDir);
             Vector3 slotDir = Vector3.zero;
 
             if (currentTarget != null)
@@ -111,6 +112,34 @@ namespace CRCrowdPrototype
                     slotDir = slotProvider.GetApproachDirection(transform.position, currentTarget.position);
             }
 
+            // 行军阶段只沿路线前进，不直接朝目标抄近路。
+            if (state == UnitState.March)
+            {
+                Vector3 marchMove = Vector3.zero;
+                marchMove += laneDir * crowdConfig.laneWeight;
+                marchMove += lateralSeparationDir * crowdConfig.separationWeight;
+
+                if (marchMove.sqrMagnitude < 0.0001f)
+                    marchMove = laneDir;
+
+                return marchMove;
+            }
+
+            // 进入追击阶段后，再逐步把目标方向和占位方向叠加进来。
+            if (state == UnitState.Chase)
+            {
+                Vector3 chaseMove = Vector3.zero;
+                chaseMove += laneDir * crowdConfig.laneWeight * 0.6f;
+                chaseMove += targetDir * crowdConfig.targetWeight;
+                chaseMove += slotDir * 0.85f;
+                chaseMove += lateralSeparationDir * crowdConfig.separationWeight;
+
+                if (chaseMove.sqrMagnitude < 0.0001f)
+                    chaseMove = laneDir;
+
+                return chaseMove;
+            }
+
             if (state == UnitState.Attack)
             {
                 if (currentTarget != null && attackTimer <= 0f)
@@ -120,19 +149,18 @@ namespace CRCrowdPrototype
                 }
 
                 // 贴着目标移动，但保留少量分离，避免单位完全叠在一起。
-                return (laneDir * 0.2f) + (separationDir * crowdConfig.separationWeight * 0.7f);
+                Vector3 attackMove = Vector3.zero;
+                attackMove += targetDir * crowdConfig.attackStickiness;
+                attackMove += slotDir * 0.6f;
+                attackMove += separationDir * crowdConfig.separationWeight * 0.7f;
+
+                if (attackMove.sqrMagnitude < 0.0001f)
+                    attackMove = laneDir * 0.2f;
+
+                return attackMove;
             }
 
-            Vector3 move = Vector3.zero;
-            move += laneDir * crowdConfig.laneWeight;
-            move += targetDir * crowdConfig.targetWeight;
-            move += slotDir * 0.85f;
-            move += separationDir * crowdConfig.separationWeight;
-
-            if (move.sqrMagnitude < 0.0001f)
-                move = laneDir;
-
-            return move;
+            return laneDir;
         }
 
         private void EnsureWaypointProgress()
@@ -144,12 +172,9 @@ namespace CRCrowdPrototype
 
             if (currentWaypointIndex < 0)
             {
-                currentWaypointIndex = lane.GetClosestWaypointIndex(transform.position);
+                currentWaypointIndex = lane.GetTargetWaypointIndex(transform.position);
                 currentWaypointIndex = Mathf.Max(currentWaypointIndex, 0);
             }
-
-
-            Debug.Log($"Unit {gameObject.name} at waypoint index {currentWaypointIndex} on lane {lane.name}");
             Vector3 waypoint = lane.GetWaypointPosition(currentWaypointIndex);
             waypoint.y = transform.position.y;
 
@@ -166,7 +191,7 @@ namespace CRCrowdPrototype
                 return Vector3.zero;
 
             if (currentWaypointIndex < 0)
-                currentWaypointIndex = Mathf.Max(lane.GetClosestWaypointIndex(transform.position), 0);
+                currentWaypointIndex = Mathf.Max(lane.GetTargetWaypointIndex(transform.position), 0);
 
             Vector3 waypoint = lane.GetWaypointPosition(currentWaypointIndex);
             Vector3 toWaypoint = waypoint - transform.position;
@@ -186,7 +211,6 @@ namespace CRCrowdPrototype
 
         public void Initialize(LanePath assignedLane, Transform assignedTarget, UnitData assignedUnitData = null)
         {
-            Debug.Log($"Initializing unit {gameObject.name} with lane {assignedLane?.name}, unitData {assignedUnitData?.unitName}");
             lane = assignedLane;
             currentTarget = assignedTarget;
 
@@ -235,6 +259,26 @@ namespace CRCrowdPrototype
                 return unitData.crowdConfig;
 
             return new UnitCrowdConfig();
+        }
+
+        // 分离只负责横向挪位，不参与前后推进，避免把整队拉成斜线。
+        private Vector3 GetLateralSeparationDirection(Vector3 separationDir, Vector3 laneDir)
+        {
+            separationDir.y = 0f;
+            if (separationDir.sqrMagnitude < 0.0001f)
+                return Vector3.zero;
+
+            laneDir.y = 0f;
+            if (laneDir.sqrMagnitude < 0.0001f)
+                return separationDir.normalized;
+
+            Vector3 lateral = Vector3.ProjectOnPlane(separationDir, laneDir.normalized);
+            lateral.y = 0f;
+
+            if (lateral.sqrMagnitude < 0.0001f)
+                return Vector3.zero;
+
+            return lateral.normalized;
         }
 
         private void FaceDirection(Vector3 dir)

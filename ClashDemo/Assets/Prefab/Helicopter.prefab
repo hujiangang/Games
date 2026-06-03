@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 999315315683023362}
   - component: {fileID: 4715176919331857050}
   - component: {fileID: -2491297652323093931}
-  - component: {fileID: -2317351952146794246}
   m_Layer: 0
   m_Name: Helicopter
   m_TagString: Unit
@@ -134,35 +133,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &-2317351952146794246
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1705551872656438599}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2b4a3a20713753439840243243a4870, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  config:
-    moveSpeed: 3.5
-    turnSpeed: 12
-    radius: 0.35
-    mass: 1
-    separationRadius: 1.2
-    separationWeight: 1.4
-    laneWeight: 1
-    targetWeight: 1.15
-    attackRange: 1.05
-    attackCooldown: 1
-    attackStickiness: 0.65
-    reachThreshold: 0.1
-  lane: {fileID: 0}
-  currentTarget: {fileID: 0}
-  state: 0
-  slotProvider: {fileID: 0}
 --- !u!1 &1786057814013903285
 GameObject:
   m_ObjectHideFlags: 0
