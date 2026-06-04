@@ -15,11 +15,15 @@ using UnityEngine.AI;
 public class NavMeshManager : MonoBehaviour
 {
     private static NavMeshManager _instance;
+    private static bool _isShuttingDown;
 
     public static NavMeshManager Instance
     {
         get
         {
+            if (_isShuttingDown)
+                return null;
+
             if (_instance != null)
                 return _instance;
 
@@ -31,6 +35,12 @@ public class NavMeshManager : MonoBehaviour
             _instance = go.AddComponent<NavMeshManager>();
             return _instance;
         }
+    }
+
+    public static bool TryGetExistingInstance(out NavMeshManager manager)
+    {
+        manager = _instance;
+        return manager != null && !_isShuttingDown;
     }
 
     [Header("编辑器烘焙资源")]
@@ -62,6 +72,8 @@ public class NavMeshManager : MonoBehaviour
 
     void Awake()
     {
+        _isShuttingDown = false;
+
         if (_instance != null && _instance != this)
         {
             Destroy(gameObject);
@@ -72,6 +84,17 @@ public class NavMeshManager : MonoBehaviour
         LoadNavMesh();
         DontDestroyOnLoad(gameObject); // 全局唯一
         
+    }
+
+    private void OnApplicationQuit()
+    {
+        _isShuttingDown = true;
+    }
+
+    private void OnDestroy()
+    {
+        if (_instance == this)
+            _instance = null;
     }
 
     private void Update()

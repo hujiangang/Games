@@ -147,14 +147,66 @@ public class NavMeshBakeWindow : EditorWindow
     private List<NavMeshBuildSource> CollectBuildSources()
     {
         List<NavMeshBuildSource> sources = new List<NavMeshBuildSource>();
-        NavMeshBuilder.CollectSources(
-            root: null,
-            includedLayerMask: _settings.WalkableLayers,
-            geometry: NavMeshCollectGeometry.RenderMeshes,
-            defaultArea: 0,
-            markups: new List<NavMeshBuildMarkup>(),
-            results: sources);
+        GameObject[] walkableRoots = GameObject.FindGameObjectsWithTag("Walkable");
+        if (walkableRoots == null || walkableRoots.Length == 0)
+            return sources;
+
+        List<string> sourceNames = new List<string>();
+        for (int i = 0; i < walkableRoots.Length; i++)
+        {
+            GameObject walkableRoot = walkableRoots[i];
+            if (!walkableRoot.activeInHierarchy || !IsLayerIncluded(walkableRoot.layer, _settings.WalkableLayers))
+                continue;
+
+            MeshFilter[] meshFilters = walkableRoot.GetComponentsInChildren<MeshFilter>(true);
+            for (int j = 0; j < meshFilters.Length; j++)
+            {
+                MeshFilter meshFilter = meshFilters[j];
+                if (meshFilter == null || meshFilter.sharedMesh == null)
+                    continue;
+
+                GameObject meshObject = meshFilter.gameObject;
+                if (!meshObject.activeInHierarchy || !IsLayerIncluded(meshObject.layer, _settings.WalkableLayers))
+                    continue;
+
+                MeshRenderer meshRenderer = meshFilter.GetComponent<MeshRenderer>();
+                if (meshRenderer == null || !meshRenderer.enabled)
+                    continue;
+
+                sources.Add(new NavMeshBuildSource
+                {
+                    shape = NavMeshBuildSourceShape.Mesh,
+                    sourceObject = meshFilter.sharedMesh,
+                    transform = meshFilter.transform.localToWorldMatrix,
+                    area = 0
+                });
+
+                sourceNames.Add(GetHierarchyPath(meshObject.transform));
+            }
+        }
+
+        Debug.Log($"NavMesh 源采集完成：WalkableRoots={walkableRoots.Length}，Sources={sources.Count}\n{string.Join("\n", sourceNames)}");
         return sources;
+    }
+
+    private static bool IsLayerIncluded(int layer, LayerMask layerMask)
+    {
+        return (layerMask.value & (1 << layer)) != 0;
+    }
+
+    private static string GetHierarchyPath(Transform current)
+    {
+        if (current == null)
+            return string.Empty;
+
+        string path = current.name;
+        while (current.parent != null)
+        {
+            current = current.parent;
+            path = $"{current.name}/{path}";
+        }
+
+        return path;
     }
 
     private bool TryCalculateBuildBounds(List<NavMeshBuildSource> sources, out Bounds bounds)

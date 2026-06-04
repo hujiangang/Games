@@ -316,7 +316,12 @@ public class UnitAgent : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (_crowdAgent != null)
-            NavMeshManager.Instance.RemoveAgent(_crowdAgent);
+        if (_crowdAgent == null)
+            return;
+
+        if (NavMeshManager.TryGetExistingInstance(out NavMeshManager navMeshManager))
+            navMeshManager.RemoveAgent(_crowdAgent);
+
+        _crowdAgent = null;
     }
 }

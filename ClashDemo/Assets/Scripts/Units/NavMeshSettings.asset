@@ -18,7 +18,7 @@ MonoBehaviour:
   MaxSlope: 35
   WalkableLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 192
   DotRecastCellSize: 0.16666667
   DotRecastCellHeight: 0.1
   DotRecastMaxVertsPerPoly: 6
