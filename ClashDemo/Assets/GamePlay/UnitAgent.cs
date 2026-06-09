@@ -6,6 +6,8 @@ using DotRecast.Detour.Crowd;
 [RequireComponent(typeof(Transform))]
 public class UnitAgent : MonoBehaviour
 {
+    internal static readonly System.Collections.Generic.List<UnitAgent> ActiveAgents = new System.Collections.Generic.List<UnitAgent>(128);
+
     [Header("目标：敌方防御塔/国王塔")]
     public Transform TargetTower;
 
@@ -38,6 +40,13 @@ public class UnitAgent : MonoBehaviour
     private float _attackTimer;
     private float _repathTimer;
     private Vector3 _lastRequestedTarget;
+    private Vector3 _pushOffset;
+    private Vector3 _priorityOffset;
+    private Vector3 _lastCrowdPosition;
+    private Vector3 _lastPushSamplePosition;
+    private float _laneHoldPressure;
+    private bool _hasLastCrowdPosition;
+    private bool _hasLastPushSamplePosition;
     private bool _initialized;
     private bool _usesDotRecast;
     private bool _movementStopped;
@@ -47,6 +56,22 @@ public class UnitAgent : MonoBehaviour
         _characterController = GetComponent<CharacterController>();
         _rigidbody = GetComponent<Rigidbody>();
         _animator = GetComponent<Animator>();
+    }
+
+    private void OnEnable()
+    {
+        if (!ActiveAgents.Contains(this))
+            ActiveAgents.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        ActiveAgents.Remove(this);
+        _hasLastCrowdPosition = false;
+        _hasLastPushSamplePosition = false;
+        _pushOffset = Vector3.zero;
+        _priorityOffset = Vector3.zero;
+        _laneHoldPressure = 0f;
     }
 
     private void Start()
@@ -112,7 +137,20 @@ public class UnitAgent : MonoBehaviour
         if (_crowdAgent == null)
             return;
 
-        transform.position = NavMeshManager.Instance.GetAgentPosition(_crowdAgent);
+        Vector3 crowdPosition = NavMeshManager.Instance.GetAgentPosition(_crowdAgent);
+        UnitCrowdSnapshot massSnapshot = BuildRuntimeSnapshot(crowdPosition, crowdPosition + _pushOffset, crowdPosition + _pushOffset + _priorityOffset);
+        UpdatePushOffset(massSnapshot);
+        Vector3 pushSamplePosition = crowdPosition + _pushOffset;
+        UnitCrowdSnapshot prioritySnapshot = BuildRuntimeSnapshot(crowdPosition, pushSamplePosition, pushSamplePosition + _priorityOffset);
+        UpdatePriorityOffset(prioritySnapshot);
+
+        Vector3 displayPosition = pushSamplePosition + _priorityOffset;
+        UnitCrowdSnapshot movementSnapshot = BuildRuntimeSnapshot(crowdPosition, pushSamplePosition, displayPosition);
+        transform.position = displayPosition;
+        _lastCrowdPosition = crowdPosition;
+        _lastPushSamplePosition = pushSamplePosition;
+        _hasLastCrowdPosition = true;
+        _hasLastPushSamplePosition = true;
 
         float sqrDistance = GetHorizontalDistanceSqr(TargetTower.position);
         float attackRange = GetAttackRange();
@@ -137,11 +175,7 @@ public class UnitAgent : MonoBehaviour
         if (_repathTimer <= 0f || (TargetTower.position - _lastRequestedTarget).sqrMagnitude > 0.0625f)
             RequestTarget(force: false);
 
-        Vector3 velocity = NavMeshManager.Instance.GetAgentVelocity(_crowdAgent);
-        if (velocity.sqrMagnitude <= 0.0001f)
-            velocity = TargetTower.position - transform.position;
-
-        FaceTowards(velocity);
+        FaceTowards(ResolveGroundFacingDirection(movementSnapshot));
     }
 
     private void UpdateAirUnit()
@@ -203,12 +237,12 @@ public class UnitAgent : MonoBehaviour
         {
             radius = radius,
             height = GetAgentHeight(),
-            maxAcceleration = fallbackAcceleration,
+            maxAcceleration = GetAcceleration(),
             maxSpeed = GetMoveSpeed(),
-            collisionQueryRange = radius * 12f,
-            pathOptimizationRange = radius * 30f,
+            collisionQueryRange = GetCollisionQueryRange(radius),
+            pathOptimizationRange = GetPathOptimizationRange(radius),
             separationWeight = GetSeparationWeight(),
-            obstacleAvoidanceType = 3,
+            obstacleAvoidanceType = GetObstacleAvoidanceType(),
             queryFilterType = 0,
             updateFlags = updateFlags,
             userData = this
@@ -258,6 +292,18 @@ public class UnitAgent : MonoBehaviour
         return fallbackAttackCooldown;
     }
 
+    private float GetAcceleration()
+    {
+        float moveSpeed = GetMoveSpeed();
+        if (unitData != null && unitData.crowdConfig != null)
+        {
+            float mass = Mathf.Max(0.75f, unitData.crowdConfig.mass);
+            return Mathf.Max(moveSpeed * 5f, fallbackAcceleration / mass);
+        }
+
+        return Mathf.Max(moveSpeed * 5f, fallbackAcceleration);
+    }
+
     private float GetAgentRadius()
     {
         if (unitData != null && unitData.crowdConfig != null && unitData.crowdConfig.radius > 0f)
@@ -277,9 +323,42 @@ public class UnitAgent : MonoBehaviour
     private float GetSeparationWeight()
     {
         if (unitData != null && unitData.crowdConfig != null)
-            return Mathf.Max(0.5f, unitData.crowdConfig.separationWeight);
+            return Mathf.Clamp(unitData.crowdConfig.separationWeight, 0.2f, 1.1f);
 
-        return 1.5f;
+        return 0.8f;
+    }
+
+    private float GetSeparationRadius()
+    {
+        if (unitData != null && unitData.crowdConfig != null && unitData.crowdConfig.separationRadius > 0f)
+            return unitData.crowdConfig.separationRadius;
+
+        return Mathf.Max(GetAgentRadius() * 2.2f, 0.75f);
+    }
+
+    private float GetCollisionQueryRange(float radius)
+    {
+        float separationRadius = GetSeparationRadius();
+        return Mathf.Max(separationRadius, radius * 3.5f);
+    }
+
+    private float GetPathOptimizationRange(float radius)
+    {
+        return Mathf.Max(GetSeparationRadius() * 2f, radius * 8f);
+    }
+
+    private int GetObstacleAvoidanceType()
+    {
+        if (unitData != null && unitData.crowdConfig != null)
+        {
+            if (unitData.crowdConfig.mass >= 1.75f)
+                return 0;
+
+            if (GetAttackRange() >= 4f)
+                return 2;
+        }
+
+        return 1;
     }
 
     private float GetHorizontalDistanceSqr(Vector3 otherPosition)
@@ -323,5 +402,121 @@ public class UnitAgent : MonoBehaviour
             navMeshManager.RemoveAgent(_crowdAgent);
 
         _crowdAgent = null;
+        _pushOffset = Vector3.zero;
+        _priorityOffset = Vector3.zero;
+        _laneHoldPressure = 0f;
+        _hasLastCrowdPosition = false;
+        _hasLastPushSamplePosition = false;
+    }
+
+    private void UpdatePushOffset(UnitCrowdSnapshot selfSnapshot)
+    {
+        if (!CanParticipateInMassPush())
+        {
+            _pushOffset = Vector3.Lerp(_pushOffset, Vector3.zero, UnitCrowdInteractionTuning.PushOffsetRecoveryLerp * Time.deltaTime);
+            return;
+        }
+
+        Vector3 desiredOffset = UnitCrowdInteractionSolver.ComputeMassPushOffset(selfSnapshot, ActiveAgents);
+        float lerpSpeed = desiredOffset.sqrMagnitude > _pushOffset.sqrMagnitude
+            ? UnitCrowdInteractionTuning.PushOffsetLerp
+            : UnitCrowdInteractionTuning.PushOffsetRecoveryLerp;
+        _pushOffset = Vector3.Lerp(_pushOffset, desiredOffset, lerpSpeed * Time.deltaTime);
+    }
+
+    private void UpdatePriorityOffset(UnitCrowdSnapshot selfSnapshot)
+    {
+        if (!CanParticipateInMassPush())
+        {
+            _laneHoldPressure = 0f;
+            _priorityOffset = Vector3.Lerp(_priorityOffset, Vector3.zero, UnitCrowdInteractionTuning.PriorityOffsetRecoveryLerp * Time.deltaTime);
+            return;
+        }
+
+        UnitCrowdPriorityResult result = UnitCrowdInteractionSolver.ComputePriority(
+            selfSnapshot,
+            _lastCrowdPosition,
+            _hasLastCrowdPosition,
+            ActiveAgents);
+
+        _laneHoldPressure = result.LaneHoldPressure;
+        float lerpSpeed = result.Offset.sqrMagnitude > _priorityOffset.sqrMagnitude
+            ? UnitCrowdInteractionTuning.PriorityOffsetLerp
+            : UnitCrowdInteractionTuning.PriorityOffsetRecoveryLerp;
+        _priorityOffset = Vector3.Lerp(_priorityOffset, result.Offset, lerpSpeed * Time.deltaTime);
+    }
+
+    private Vector3 GetPushIntent(Vector3 referencePosition)
+    {
+        if (_usesDotRecast && _crowdAgent != null && NavMeshManager.TryGetExistingInstance(out NavMeshManager navMeshManager))
+        {
+            Vector3 velocity = navMeshManager.GetAgentVelocity(_crowdAgent);
+            velocity.y = 0f;
+            if (velocity.sqrMagnitude > 0.0001f)
+                return velocity.normalized;
+        }
+
+        if (TargetTower == null)
+            return Vector3.zero;
+
+        Vector3 toTarget = TargetTower.position - referencePosition;
+        toTarget.y = 0f;
+        return toTarget.sqrMagnitude > 0.0001f ? toTarget.normalized : Vector3.zero;
+    }
+
+    private bool CanParticipateInMassPush()
+    {
+        return _initialized && _usesDotRecast && _crowdAgent != null && !IsAirUnit();
+    }
+
+    internal bool TryBuildCrowdSnapshot(out UnitCrowdSnapshot snapshot)
+    {
+        if (!CanParticipateInMassPush())
+        {
+            snapshot = default;
+            return false;
+        }
+
+        Vector3 crowdPosition = _hasLastCrowdPosition
+            ? _lastCrowdPosition
+            : transform.position - _pushOffset - _priorityOffset;
+        Vector3 pushSamplePosition = GetPushSamplePosition();
+        snapshot = BuildRuntimeSnapshot(crowdPosition, pushSamplePosition, pushSamplePosition + _priorityOffset);
+        return true;
+    }
+
+    private UnitCrowdSnapshot BuildRuntimeSnapshot(Vector3 crowdPosition, Vector3 pushSamplePosition, Vector3 displayPosition)
+    {
+        return new UnitCrowdSnapshot(
+            this,
+            crowdPosition,
+            pushSamplePosition,
+            displayPosition,
+            GetPushIntent(pushSamplePosition),
+            GetAgentRadius(),
+            GetMass());
+    }
+
+    private Vector3 ResolveGroundFacingDirection(UnitCrowdSnapshot selfSnapshot)
+    {
+        Vector3 crowdVelocity = NavMeshManager.Instance.GetAgentVelocity(_crowdAgent);
+        Vector3 facingDirection = UnitCrowdInteractionSolver.ResolveFacingDirection(selfSnapshot, crowdVelocity, _laneHoldPressure);
+        if (facingDirection.sqrMagnitude > 0.0001f)
+            return facingDirection;
+
+        return TargetTower != null ? TargetTower.position - selfSnapshot.DisplayPosition : Vector3.zero;
+    }
+
+    private Vector3 GetPushSamplePosition()
+    {
+        return _hasLastPushSamplePosition ? _lastPushSamplePosition : transform.position - _priorityOffset;
+    }
+
+    private float GetMass()
+    {
+        if (unitData != null && unitData.crowdConfig != null)
+            return Mathf.Max(0.5f, unitData.crowdConfig.mass);
+
+        return 1f;
     }
 }

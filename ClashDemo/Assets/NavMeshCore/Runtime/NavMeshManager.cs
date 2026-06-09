@@ -436,16 +436,16 @@ public class NavMeshManager : MonoBehaviour
     {
         DtCrowdConfig config = new DtCrowdConfig(crowdAgentRadius)
         {
-            pathQueueSize = 32,
+            pathQueueSize = 48,
             maxFindPathIterations = 128,
             maxTargetFindPathIterations = 64,
             maxTopologyOptimizationIterations = 32,
             topologyOptimizationTimeThreshold = 0.5f,
-            checkLookAhead = 10,
-            targetReplanDelay = 0.5f,
-            maxObstacleAvoidanceCircles = 6,
-            maxObstacleAvoidanceSegments = 8,
-            collisionResolveFactor = 0.7f
+            checkLookAhead = 6,
+            targetReplanDelay = 0.2f,
+            maxObstacleAvoidanceCircles = 4,
+            maxObstacleAvoidanceSegments = 6,
+            collisionResolveFactor = 0.45f
         };
 
         return config;
@@ -456,22 +456,66 @@ public class NavMeshManager : MonoBehaviour
         if (_crowd == null)
             return;
 
-        DtObstacleAvoidanceParams obstacleParams = new DtObstacleAvoidanceParams
+        DtObstacleAvoidanceParams heavyPushParams = new DtObstacleAvoidanceParams
         {
-            velBias = 0.5f,
+            velBias = 0.72f,
+            weightDesVel = 2.6f,
+            weightCurVel = 0.2f,
+            weightSide = 0.05f,
+            weightToi = 0.75f,
+            horizTime = 1f,
+            gridSize = 25,
+            adaptiveDivs = 5,
+            adaptiveRings = 2,
+            adaptiveDepth = 2
+        };
+
+        DtObstacleAvoidanceParams pushParams = new DtObstacleAvoidanceParams
+        {
+            velBias = 0.68f,
+            weightDesVel = 2.35f,
+            weightCurVel = 0.3f,
+            weightSide = 0.12f,
+            weightToi = 1f,
+            horizTime = 1.2f,
+            gridSize = 25,
+            adaptiveDivs = 5,
+            adaptiveRings = 2,
+            adaptiveDepth = 3
+        };
+
+        DtObstacleAvoidanceParams rangedParams = new DtObstacleAvoidanceParams
+        {
+            velBias = 0.62f,
+            weightDesVel = 2.15f,
+            weightCurVel = 0.45f,
+            weightSide = 0.22f,
+            weightToi = 1.35f,
+            horizTime = 1.5f,
+            gridSize = 25,
+            adaptiveDivs = 5,
+            adaptiveRings = 2,
+            adaptiveDepth = 3
+        };
+
+        DtObstacleAvoidanceParams cautiousParams = new DtObstacleAvoidanceParams
+        {
+            velBias = 0.55f,
             weightDesVel = 2f,
-            weightCurVel = 0.75f,
-            weightSide = 0.75f,
-            weightToi = 2.5f,
-            horizTime = 2.5f,
+            weightCurVel = 0.6f,
+            weightSide = 0.35f,
+            weightToi = 1.75f,
+            horizTime = 2f,
             gridSize = 33,
             adaptiveDivs = 7,
             adaptiveRings = 2,
-            adaptiveDepth = 5
+            adaptiveDepth = 4
         };
 
-        for (int i = 0; i < 4; i++)
-            _crowd.SetObstacleAvoidanceParams(i, obstacleParams);
+        _crowd.SetObstacleAvoidanceParams(0, heavyPushParams);
+        _crowd.SetObstacleAvoidanceParams(1, pushParams);
+        _crowd.SetObstacleAvoidanceParams(2, rangedParams);
+        _crowd.SetObstacleAvoidanceParams(3, cautiousParams);
     }
 
     private static RcVec3f ToRc(Vector3 worldPosition)

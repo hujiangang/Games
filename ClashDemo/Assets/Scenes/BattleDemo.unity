@@ -1621,6 +1621,10 @@ PrefabInstance:
       propertyPath: rightLane
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 2959204959140002926, guid: 188bd400d86bc8447bd8d1fe7440fdd5, type: 3}
+      propertyPath: defaultTarget
+      value: 
+      objectReference: {fileID: 800766421}
     - target: {fileID: 4399710913611137362, guid: 188bd400d86bc8447bd8d1fe7440fdd5, type: 3}
       propertyPath: m_Name
       value: CardsUI
@@ -1802,7 +1806,9 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 6188309796912983699, guid: 188bd400d86bc8447bd8d1fe7440fdd5, type: 3}
+    - {fileID: 7063018696804750960, guid: 188bd400d86bc8447bd8d1fe7440fdd5, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 188bd400d86bc8447bd8d1fe7440fdd5, type: 3}

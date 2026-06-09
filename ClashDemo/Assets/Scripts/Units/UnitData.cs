@@ -30,10 +30,10 @@ public class UnitCrowdConfig
     public float mass = 1f;
 
     [Tooltip("开始计算避让的搜索范围。")]
-    public float separationRadius = 1.2f;
+    public float separationRadius = 0.8f;
 
     [Tooltip("分离/推开其它单位的力度。")]
-    public float separationWeight = 1.4f;
+    public float separationWeight = 0.8f;
 
     [Tooltip("沿路线前进的权重。")]
     public float laneWeight = 1f;
