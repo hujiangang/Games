@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CRCrowdPrototype", "CRCrowdPrototype.csproj", "{7696BCE8-6865-18CC-24AF-587EB342DFDE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{D3D9F37D-2772-3720-C3EF-C73BA78907E3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{06A398A7-ACEE-08A2-6DFE-6F2A8D89023A}"
 EndProject
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7696BCE8-6865-18CC-24AF-587EB342DFDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7696BCE8-6865-18CC-24AF-587EB342DFDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7696BCE8-6865-18CC-24AF-587EB342DFDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7696BCE8-6865-18CC-24AF-587EB342DFDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3D9F37D-2772-3720-C3EF-C73BA78907E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3D9F37D-2772-3720-C3EF-C73BA78907E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3D9F37D-2772-3720-C3EF-C73BA78907E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3D9F37D-2772-3720-C3EF-C73BA78907E3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{06A398A7-ACEE-08A2-6DFE-6F2A8D89023A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{06A398A7-ACEE-08A2-6DFE-6F2A8D89023A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06A398A7-ACEE-08A2-6DFE-6F2A8D89023A}.Release|Any CPU.ActiveCfg = Release|Any CPU
