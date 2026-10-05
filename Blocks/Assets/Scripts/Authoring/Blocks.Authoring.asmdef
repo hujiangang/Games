@@ -1,0 +1,15 @@
+{
+  "name": "Blocks.Authoring",
+  "references": [
+    "Blocks.Game",
+    "Blocks.Framework",
+    "Blocks.Clipper2",
+    "Unity.TextMeshPro",
+    "Unity.ugui",
+    "Unity.Mathematics",
+    "Unity.InputSystem"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ]
+}

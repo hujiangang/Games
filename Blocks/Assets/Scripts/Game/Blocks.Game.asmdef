@@ -1,0 +1,10 @@
+{
+  "name": "Blocks.Game",
+  "references": [
+    "Blocks.Framework",
+    "Blocks.Clipper2",
+    "Unity.TextMeshPro",
+    "Unity.ugui"
+  ],
+  "includePlatforms": []
+}

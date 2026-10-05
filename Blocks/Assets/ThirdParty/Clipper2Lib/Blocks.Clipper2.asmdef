@@ -1,0 +1,6 @@
+{
+  "name": "Blocks.Clipper2",
+  "references": [],
+  "includePlatforms": [],
+  "additionalCompilerArguments": ["-nullable:annotations"]
+}

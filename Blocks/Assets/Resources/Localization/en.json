@@ -1,0 +1,322 @@
+{
+  "locale": "en",
+  "fontResource": "Fonts/BlocksUI",
+  "entries": [
+    {
+      "key": "app.name",
+      "value": "Color Blocks"
+    },
+    {
+      "key": "action.hint",
+      "value": "Peek"
+    },
+    {
+      "key": "action.sound",
+      "value": "Sound"
+    },
+    {
+      "key": "action.sidebar",
+      "value": "Sidebar"
+    },
+    {
+      "key": "action.previous",
+      "value": "Previous"
+    },
+    {
+      "key": "action.next",
+      "value": "Next level"
+    },
+    {
+      "key": "action.replay",
+      "value": "Play again"
+    },
+    {
+      "key": "action.ok",
+      "value": "OK"
+    },
+    {
+      "key": "action.cancel",
+      "value": "Not now"
+    },
+    {
+      "key": "action.watch",
+      "value": "Watch video"
+    },
+    {
+      "key": "level.counter",
+      "value": "{0:00} / {1}"
+    },
+    {
+      "key": "hint.remaining",
+      "value": "{0}"
+    },
+    {
+      "key": "hint.reward",
+      "value": "+1"
+    },
+    {
+      "key": "win.level",
+      "value": "Nicely done!"
+    },
+    {
+      "key": "win.all",
+      "value": "All {0} levels complete!"
+    },
+    {
+      "key": "hint.caption",
+      "value": "Remember the pattern · Tap to return"
+    },
+    {
+      "key": "dialog.notice",
+      "value": "Notice"
+    },
+    {
+      "key": "ad.unavailable",
+      "value": "No video is available right now. Try again later.\nFree peeks are replenished daily."
+    },
+    {
+      "key": "ad.reward.title",
+      "value": "Get another peek"
+    },
+    {
+      "key": "ad.reward.body",
+      "value": "Watch the full video to earn one peek.\nKeep it and use it whenever you need it."
+    },
+    {
+      "key": "ad.skipped",
+      "value": "The video ended early. No peek was added."
+    },
+    {
+      "key": "ad.failed",
+      "value": "The video could not finish. Please try again later."
+    },
+    {
+      "key": "sidebar.title",
+      "value": "Douyin sidebar"
+    },
+    {
+      "key": "sidebar.failed",
+      "value": "Could not open the sidebar. Please try again later."
+    },
+    {
+      "key": "editor.reward.title",
+      "value": "Rewarded ad simulation"
+    },
+    {
+      "key": "editor.ad.body",
+      "value": "Local testing only. No real ad is playing."
+    },
+    {
+      "key": "editor.complete",
+      "value": "Simulate completion"
+    },
+    {
+      "key": "editor.interstitial.title",
+      "value": "Interstitial simulation"
+    },
+    {
+      "key": "editor.close",
+      "value": "Close"
+    },
+    {
+      "key": "level.Level_1.name",
+      "value": "Morning Ribbons"
+    },
+    {
+      "key": "level.Level_10.name",
+      "value": "Cozy Cottage"
+    },
+    {
+      "key": "level.Level_11.name",
+      "value": "Morning Ribbons"
+    },
+    {
+      "key": "level.Level_12.name",
+      "value": "Distant Mountains"
+    },
+    {
+      "key": "level.Level_13.name",
+      "value": "Set Sail"
+    },
+    {
+      "key": "level.Level_14.name",
+      "value": "Cozy Cottage"
+    },
+    {
+      "key": "level.Level_15.name",
+      "value": "Sunny Kite"
+    },
+    {
+      "key": "level.Level_16.name",
+      "value": "Coral Fish"
+    },
+    {
+      "key": "level.Level_17.name",
+      "value": "Garden Tulips"
+    },
+    {
+      "key": "level.Level_18.name",
+      "value": "Space Voyage"
+    },
+    {
+      "key": "level.Level_19.name",
+      "value": "Garden Butterfly"
+    },
+    {
+      "key": "level.Level_2.name",
+      "value": "Morning Ribbons"
+    },
+    {
+      "key": "level.Level_20.name",
+      "value": "Pinwheel"
+    },
+    {
+      "key": "level.Level_21.name",
+      "value": "Morning Ribbons"
+    },
+    {
+      "key": "level.Level_22.name",
+      "value": "Distant Mountains"
+    },
+    {
+      "key": "level.Level_23.name",
+      "value": "Set Sail"
+    },
+    {
+      "key": "level.Level_24.name",
+      "value": "Cozy Cottage"
+    },
+    {
+      "key": "level.Level_25.name",
+      "value": "Sunny Kite"
+    },
+    {
+      "key": "level.Level_26.name",
+      "value": "Coral Fish"
+    },
+    {
+      "key": "level.Level_27.name",
+      "value": "Garden Tulips"
+    },
+    {
+      "key": "level.Level_28.name",
+      "value": "Space Voyage"
+    },
+    {
+      "key": "level.Level_29.name",
+      "value": "Garden Butterfly"
+    },
+    {
+      "key": "level.Level_3.name",
+      "value": "Pinwheel"
+    },
+    {
+      "key": "level.Level_30.name",
+      "value": "Pinwheel"
+    },
+    {
+      "key": "level.Level_31.name",
+      "value": "Morning Ribbons"
+    },
+    {
+      "key": "level.Level_32.name",
+      "value": "Distant Mountains"
+    },
+    {
+      "key": "level.Level_33.name",
+      "value": "Set Sail"
+    },
+    {
+      "key": "level.Level_34.name",
+      "value": "Cozy Cottage"
+    },
+    {
+      "key": "level.Level_35.name",
+      "value": "Sunny Kite"
+    },
+    {
+      "key": "level.Level_36.name",
+      "value": "Coral Fish"
+    },
+    {
+      "key": "level.Level_37.name",
+      "value": "Garden Tulips"
+    },
+    {
+      "key": "level.Level_38.name",
+      "value": "Space Voyage"
+    },
+    {
+      "key": "level.Level_39.name",
+      "value": "Garden Butterfly"
+    },
+    {
+      "key": "level.Level_4.name",
+      "value": "Distant Mountains"
+    },
+    {
+      "key": "level.Level_40.name",
+      "value": "Pinwheel"
+    },
+    {
+      "key": "level.Level_41.name",
+      "value": "Morning Ribbons"
+    },
+    {
+      "key": "level.Level_42.name",
+      "value": "Distant Mountains"
+    },
+    {
+      "key": "level.Level_43.name",
+      "value": "Set Sail"
+    },
+    {
+      "key": "level.Level_44.name",
+      "value": "Cozy Cottage"
+    },
+    {
+      "key": "level.Level_45.name",
+      "value": "Sunny Kite"
+    },
+    {
+      "key": "level.Level_46.name",
+      "value": "Coral Fish"
+    },
+    {
+      "key": "level.Level_47.name",
+      "value": "Garden Tulips"
+    },
+    {
+      "key": "level.Level_48.name",
+      "value": "Space Voyage"
+    },
+    {
+      "key": "level.Level_49.name",
+      "value": "Garden Butterfly"
+    },
+    {
+      "key": "level.Level_5.name",
+      "value": "Sunny Kite"
+    },
+    {
+      "key": "level.Level_50.name",
+      "value": "Pinwheel"
+    },
+    {
+      "key": "level.Level_6.name",
+      "value": "Cozy Cottage"
+    },
+    {
+      "key": "level.Level_7.name",
+      "value": "Distant Mountains"
+    },
+    {
+      "key": "level.Level_8.name",
+      "value": "Sunny Kite"
+    },
+    {
+      "key": "level.Level_9.name",
+      "value": "Set Sail"
+    }
+  ]
+}

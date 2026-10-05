@@ -1,0 +1,7 @@
+{
+  "name": "Blocks.Framework",
+  "references": [
+    "Blocks.Clipper2"
+  ],
+  "includePlatforms": []
+}

@@ -1,0 +1,322 @@
+{
+  "locale": "zh-CN",
+  "fontResource": "Fonts/BlocksUI",
+  "entries": [
+    {
+      "key": "app.name",
+      "value": "色块拼图"
+    },
+    {
+      "key": "action.hint",
+      "value": "看一眼"
+    },
+    {
+      "key": "action.sound",
+      "value": "声音"
+    },
+    {
+      "key": "action.sidebar",
+      "value": "侧边栏"
+    },
+    {
+      "key": "action.previous",
+      "value": "上一关"
+    },
+    {
+      "key": "action.next",
+      "value": "下一关"
+    },
+    {
+      "key": "action.replay",
+      "value": "再玩一次"
+    },
+    {
+      "key": "action.ok",
+      "value": "知道了"
+    },
+    {
+      "key": "action.cancel",
+      "value": "暂不观看"
+    },
+    {
+      "key": "action.watch",
+      "value": "观看视频"
+    },
+    {
+      "key": "level.counter",
+      "value": "{0:00} / {1}"
+    },
+    {
+      "key": "hint.remaining",
+      "value": "{0}"
+    },
+    {
+      "key": "hint.reward",
+      "value": "+1"
+    },
+    {
+      "key": "win.level",
+      "value": "拼好了！"
+    },
+    {
+      "key": "win.all",
+      "value": "{0} 关全部完成！"
+    },
+    {
+      "key": "hint.caption",
+      "value": "记住图案 · 轻点返回"
+    },
+    {
+      "key": "dialog.notice",
+      "value": "提示"
+    },
+    {
+      "key": "ad.unavailable",
+      "value": "暂时没有可用视频，请稍后重试。\n每日补充免费提示次数。"
+    },
+    {
+      "key": "ad.reward.title",
+      "value": "增加看一眼次数"
+    },
+    {
+      "key": "ad.reward.body",
+      "value": "完整观看视频，获得 1 次看一眼机会。\n次数会保留，需要时再使用。"
+    },
+    {
+      "key": "ad.skipped",
+      "value": "视频未看完，本次未获得次数。"
+    },
+    {
+      "key": "ad.failed",
+      "value": "本次视频未能完成，请稍后再试。"
+    },
+    {
+      "key": "sidebar.title",
+      "value": "抖音侧边栏"
+    },
+    {
+      "key": "sidebar.failed",
+      "value": "暂时无法打开，请稍后重试。"
+    },
+    {
+      "key": "editor.reward.title",
+      "value": "激励视频本地模拟"
+    },
+    {
+      "key": "editor.ad.body",
+      "value": "仅用于本地测试，不是真实广告。"
+    },
+    {
+      "key": "editor.complete",
+      "value": "模拟看完"
+    },
+    {
+      "key": "editor.interstitial.title",
+      "value": "插屏本地模拟"
+    },
+    {
+      "key": "editor.close",
+      "value": "关闭"
+    },
+    {
+      "key": "level.Level_1.name",
+      "value": "晨光色带"
+    },
+    {
+      "key": "level.Level_10.name",
+      "value": "温暖小屋"
+    },
+    {
+      "key": "level.Level_11.name",
+      "value": "晨光色带"
+    },
+    {
+      "key": "level.Level_12.name",
+      "value": "远山来信"
+    },
+    {
+      "key": "level.Level_13.name",
+      "value": "扬帆出发"
+    },
+    {
+      "key": "level.Level_14.name",
+      "value": "温暖小屋"
+    },
+    {
+      "key": "level.Level_15.name",
+      "value": "晴空风筝"
+    },
+    {
+      "key": "level.Level_16.name",
+      "value": "珊瑚小鱼"
+    },
+    {
+      "key": "level.Level_17.name",
+      "value": "花园郁金香"
+    },
+    {
+      "key": "level.Level_18.name",
+      "value": "星际旅行"
+    },
+    {
+      "key": "level.Level_19.name",
+      "value": "花间蝴蝶"
+    },
+    {
+      "key": "level.Level_2.name",
+      "value": "晨光色带"
+    },
+    {
+      "key": "level.Level_20.name",
+      "value": "旋转风车"
+    },
+    {
+      "key": "level.Level_21.name",
+      "value": "晨光色带"
+    },
+    {
+      "key": "level.Level_22.name",
+      "value": "远山来信"
+    },
+    {
+      "key": "level.Level_23.name",
+      "value": "扬帆出发"
+    },
+    {
+      "key": "level.Level_24.name",
+      "value": "温暖小屋"
+    },
+    {
+      "key": "level.Level_25.name",
+      "value": "晴空风筝"
+    },
+    {
+      "key": "level.Level_26.name",
+      "value": "珊瑚小鱼"
+    },
+    {
+      "key": "level.Level_27.name",
+      "value": "花园郁金香"
+    },
+    {
+      "key": "level.Level_28.name",
+      "value": "星际旅行"
+    },
+    {
+      "key": "level.Level_29.name",
+      "value": "花间蝴蝶"
+    },
+    {
+      "key": "level.Level_3.name",
+      "value": "旋转风车"
+    },
+    {
+      "key": "level.Level_30.name",
+      "value": "旋转风车"
+    },
+    {
+      "key": "level.Level_31.name",
+      "value": "晨光色带"
+    },
+    {
+      "key": "level.Level_32.name",
+      "value": "远山来信"
+    },
+    {
+      "key": "level.Level_33.name",
+      "value": "扬帆出发"
+    },
+    {
+      "key": "level.Level_34.name",
+      "value": "温暖小屋"
+    },
+    {
+      "key": "level.Level_35.name",
+      "value": "晴空风筝"
+    },
+    {
+      "key": "level.Level_36.name",
+      "value": "珊瑚小鱼"
+    },
+    {
+      "key": "level.Level_37.name",
+      "value": "花园郁金香"
+    },
+    {
+      "key": "level.Level_38.name",
+      "value": "星际旅行"
+    },
+    {
+      "key": "level.Level_39.name",
+      "value": "花间蝴蝶"
+    },
+    {
+      "key": "level.Level_4.name",
+      "value": "远山来信"
+    },
+    {
+      "key": "level.Level_40.name",
+      "value": "旋转风车"
+    },
+    {
+      "key": "level.Level_41.name",
+      "value": "晨光色带"
+    },
+    {
+      "key": "level.Level_42.name",
+      "value": "远山来信"
+    },
+    {
+      "key": "level.Level_43.name",
+      "value": "扬帆出发"
+    },
+    {
+      "key": "level.Level_44.name",
+      "value": "温暖小屋"
+    },
+    {
+      "key": "level.Level_45.name",
+      "value": "晴空风筝"
+    },
+    {
+      "key": "level.Level_46.name",
+      "value": "珊瑚小鱼"
+    },
+    {
+      "key": "level.Level_47.name",
+      "value": "花园郁金香"
+    },
+    {
+      "key": "level.Level_48.name",
+      "value": "星际旅行"
+    },
+    {
+      "key": "level.Level_49.name",
+      "value": "花间蝴蝶"
+    },
+    {
+      "key": "level.Level_5.name",
+      "value": "晴空风筝"
+    },
+    {
+      "key": "level.Level_50.name",
+      "value": "旋转风车"
+    },
+    {
+      "key": "level.Level_6.name",
+      "value": "温暖小屋"
+    },
+    {
+      "key": "level.Level_7.name",
+      "value": "远山来信"
+    },
+    {
+      "key": "level.Level_8.name",
+      "value": "晴空风筝"
+    },
+    {
+      "key": "level.Level_9.name",
+      "value": "扬帆出发"
+    }
+  ]
+}
