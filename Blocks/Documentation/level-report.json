@@ -1,0 +1,302 @@
+[
+  {
+    "level": 1,
+    "name": "晨光色带",
+    "pieces": 3,
+    "minimumArea": 3.96
+  },
+  {
+    "level": 2,
+    "name": "晨光色带",
+    "pieces": 3,
+    "minimumArea": 4.104
+  },
+  {
+    "level": 3,
+    "name": "旋转风车",
+    "pieces": 4,
+    "minimumArea": 3.0
+  },
+  {
+    "level": 4,
+    "name": "远山来信",
+    "pieces": 4,
+    "minimumArea": 2.8125
+  },
+  {
+    "level": 5,
+    "name": "晴空风筝",
+    "pieces": 4,
+    "minimumArea": 3.9174
+  },
+  {
+    "level": 6,
+    "name": "温暖小屋",
+    "pieces": 4,
+    "minimumArea": 2.25
+  },
+  {
+    "level": 7,
+    "name": "远山来信",
+    "pieces": 4,
+    "minimumArea": 2.8667
+  },
+  {
+    "level": 8,
+    "name": "晴空风筝",
+    "pieces": 4,
+    "minimumArea": 3.9236
+  },
+  {
+    "level": 9,
+    "name": "扬帆出发",
+    "pieces": 6,
+    "minimumArea": 1.1238
+  },
+  {
+    "level": 10,
+    "name": "温暖小屋",
+    "pieces": 6,
+    "minimumArea": 2.25
+  },
+  {
+    "level": 11,
+    "name": "晨光色带",
+    "pieces": 6,
+    "minimumArea": 2.0179
+  },
+  {
+    "level": 12,
+    "name": "远山来信",
+    "pieces": 6,
+    "minimumArea": 2.1809
+  },
+  {
+    "level": 13,
+    "name": "扬帆出发",
+    "pieces": 6,
+    "minimumArea": 1.1513
+  },
+  {
+    "level": 14,
+    "name": "温暖小屋",
+    "pieces": 6,
+    "minimumArea": 2.25
+  },
+  {
+    "level": 15,
+    "name": "晴空风筝",
+    "pieces": 6,
+    "minimumArea": 1.9771
+  },
+  {
+    "level": 16,
+    "name": "珊瑚小鱼",
+    "pieces": 6,
+    "minimumArea": 1.53
+  },
+  {
+    "level": 17,
+    "name": "花园郁金香",
+    "pieces": 7,
+    "minimumArea": 0.77
+  },
+  {
+    "level": 18,
+    "name": "星际旅行",
+    "pieces": 7,
+    "minimumArea": 0.88
+  },
+  {
+    "level": 19,
+    "name": "花间蝴蝶",
+    "pieces": 7,
+    "minimumArea": 1.0813
+  },
+  {
+    "level": 20,
+    "name": "旋转风车",
+    "pieces": 7,
+    "minimumArea": 2.0
+  },
+  {
+    "level": 21,
+    "name": "晨光色带",
+    "pieces": 7,
+    "minimumArea": 1.5024
+  },
+  {
+    "level": 22,
+    "name": "远山来信",
+    "pieces": 7,
+    "minimumArea": 1.4698
+  },
+  {
+    "level": 23,
+    "name": "扬帆出发",
+    "pieces": 7,
+    "minimumArea": 1.2013
+  },
+  {
+    "level": 24,
+    "name": "温暖小屋",
+    "pieces": 7,
+    "minimumArea": 1.5134
+  },
+  {
+    "level": 25,
+    "name": "晴空风筝",
+    "pieces": 7,
+    "minimumArea": 1.5702
+  },
+  {
+    "level": 26,
+    "name": "珊瑚小鱼",
+    "pieces": 8,
+    "minimumArea": 1.4861
+  },
+  {
+    "level": 27,
+    "name": "花园郁金香",
+    "pieces": 8,
+    "minimumArea": 0.77
+  },
+  {
+    "level": 28,
+    "name": "星际旅行",
+    "pieces": 8,
+    "minimumArea": 0.88
+  },
+  {
+    "level": 29,
+    "name": "花间蝴蝶",
+    "pieces": 8,
+    "minimumArea": 1.0813
+  },
+  {
+    "level": 30,
+    "name": "旋转风车",
+    "pieces": 8,
+    "minimumArea": 1.3959
+  },
+  {
+    "level": 31,
+    "name": "晨光色带",
+    "pieces": 9,
+    "minimumArea": 1.2672
+  },
+  {
+    "level": 32,
+    "name": "远山来信",
+    "pieces": 9,
+    "minimumArea": 1.2099
+  },
+  {
+    "level": 33,
+    "name": "扬帆出发",
+    "pieces": 9,
+    "minimumArea": 1.0985
+  },
+  {
+    "level": 34,
+    "name": "温暖小屋",
+    "pieces": 9,
+    "minimumArea": 1.1425
+  },
+  {
+    "level": 35,
+    "name": "晴空风筝",
+    "pieces": 9,
+    "minimumArea": 0.9915
+  },
+  {
+    "level": 36,
+    "name": "珊瑚小鱼",
+    "pieces": 10,
+    "minimumArea": 0.9151
+  },
+  {
+    "level": 37,
+    "name": "花园郁金香",
+    "pieces": 10,
+    "minimumArea": 0.77
+  },
+  {
+    "level": 38,
+    "name": "星际旅行",
+    "pieces": 10,
+    "minimumArea": 0.88
+  },
+  {
+    "level": 39,
+    "name": "花间蝴蝶",
+    "pieces": 10,
+    "minimumArea": 1.0813
+  },
+  {
+    "level": 40,
+    "name": "旋转风车",
+    "pieces": 10,
+    "minimumArea": 1.2111
+  },
+  {
+    "level": 41,
+    "name": "晨光色带",
+    "pieces": 11,
+    "minimumArea": 1.2544
+  },
+  {
+    "level": 42,
+    "name": "远山来信",
+    "pieces": 11,
+    "minimumArea": 1.1511
+  },
+  {
+    "level": 43,
+    "name": "扬帆出发",
+    "pieces": 11,
+    "minimumArea": 1.0623
+  },
+  {
+    "level": 44,
+    "name": "温暖小屋",
+    "pieces": 11,
+    "minimumArea": 1.0163
+  },
+  {
+    "level": 45,
+    "name": "晴空风筝",
+    "pieces": 11,
+    "minimumArea": 0.9572
+  },
+  {
+    "level": 46,
+    "name": "珊瑚小鱼",
+    "pieces": 12,
+    "minimumArea": 0.8845
+  },
+  {
+    "level": 47,
+    "name": "花园郁金香",
+    "pieces": 12,
+    "minimumArea": 0.77
+  },
+  {
+    "level": 48,
+    "name": "星际旅行",
+    "pieces": 12,
+    "minimumArea": 0.88
+  },
+  {
+    "level": 49,
+    "name": "花间蝴蝶",
+    "pieces": 12,
+    "minimumArea": 0.9928
+  },
+  {
+    "level": 50,
+    "name": "旋转风车",
+    "pieces": 12,
+    "minimumArea": 0.9858
+  }
+]

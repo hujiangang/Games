@@ -1,0 +1,26 @@
+[
+  {
+    "file": "morning_mosaic.ogg",
+    "seconds": 53.333,
+    "peak": 0.2594,
+    "rms": 0.0533
+  },
+  {
+    "file": "snap.ogg",
+    "seconds": 0.48,
+    "peak": 0.2438,
+    "rms": 0.0723
+  },
+  {
+    "file": "powerUp1.ogg",
+    "seconds": 1.3,
+    "peak": 0.2403,
+    "rms": 0.0591
+  },
+  {
+    "file": "click.ogg",
+    "seconds": 0.095,
+    "peak": 0.28,
+    "rms": 0.0434
+  }
+]

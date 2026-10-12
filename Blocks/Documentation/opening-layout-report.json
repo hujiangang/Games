@@ -1,0 +1,402 @@
+[
+  {
+    "level": 1,
+    "minimumVisibleFraction": 0.1332,
+    "grabRadius": 0.2,
+    "pileWidth": 4.42,
+    "pileHeight": 1.8,
+    "overlapFraction": 0.5747
+  },
+  {
+    "level": 2,
+    "minimumVisibleFraction": 0.1734,
+    "grabRadius": 0.2,
+    "pileWidth": 4.42,
+    "pileHeight": 1.8,
+    "overlapFraction": 0.5641
+  },
+  {
+    "level": 3,
+    "minimumVisibleFraction": 0.1226,
+    "grabRadius": 0.2,
+    "pileWidth": 2.04,
+    "pileHeight": 3.269,
+    "overlapFraction": 0.6442
+  },
+  {
+    "level": 4,
+    "minimumVisibleFraction": 0.1917,
+    "grabRadius": 0.2,
+    "pileWidth": 3.112,
+    "pileHeight": 3.5,
+    "overlapFraction": 0.5777
+  },
+  {
+    "level": 5,
+    "minimumVisibleFraction": 0.1814,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 4.06,
+    "overlapFraction": 0.492
+  },
+  {
+    "level": 6,
+    "minimumVisibleFraction": 0.3654,
+    "grabRadius": 0.2,
+    "pileWidth": 4.7,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.2844
+  },
+  {
+    "level": 7,
+    "minimumVisibleFraction": 0.1274,
+    "grabRadius": 0.2,
+    "pileWidth": 3.045,
+    "pileHeight": 3.52,
+    "overlapFraction": 0.5801
+  },
+  {
+    "level": 8,
+    "minimumVisibleFraction": 0.15,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.4861
+  },
+  {
+    "level": 9,
+    "minimumVisibleFraction": 0.1478,
+    "grabRadius": 0.2,
+    "pileWidth": 4.28,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.366
+  },
+  {
+    "level": 10,
+    "minimumVisibleFraction": 0.1389,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 3.345,
+    "overlapFraction": 0.5723
+  },
+  {
+    "level": 11,
+    "minimumVisibleFraction": 0.1396,
+    "grabRadius": 0.2,
+    "pileWidth": 2.781,
+    "pileHeight": 2.078,
+    "overlapFraction": 0.6778
+  },
+  {
+    "level": 12,
+    "minimumVisibleFraction": 0.1536,
+    "grabRadius": 0.2,
+    "pileWidth": 2.992,
+    "pileHeight": 3.244,
+    "overlapFraction": 0.6658
+  },
+  {
+    "level": 13,
+    "minimumVisibleFraction": 0.1226,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.3501
+  },
+  {
+    "level": 14,
+    "minimumVisibleFraction": 0.1219,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 3.391,
+    "overlapFraction": 0.5845
+  },
+  {
+    "level": 15,
+    "minimumVisibleFraction": 0.1463,
+    "grabRadius": 0.2,
+    "pileWidth": 2.018,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.5882
+  },
+  {
+    "level": 16,
+    "minimumVisibleFraction": 0.1409,
+    "grabRadius": 0.2,
+    "pileWidth": 4.004,
+    "pileHeight": 4.16,
+    "overlapFraction": 0.5644
+  },
+  {
+    "level": 17,
+    "minimumVisibleFraction": 0.1547,
+    "grabRadius": 0.2,
+    "pileWidth": 4.003,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.3987
+  },
+  {
+    "level": 18,
+    "minimumVisibleFraction": 0.1874,
+    "grabRadius": 0.2,
+    "pileWidth": 4.022,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.5832
+  },
+  {
+    "level": 19,
+    "minimumVisibleFraction": 0.183,
+    "grabRadius": 0.2,
+    "pileWidth": 4.018,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.4382
+  },
+  {
+    "level": 20,
+    "minimumVisibleFraction": 0.1354,
+    "grabRadius": 0.2,
+    "pileWidth": 2.958,
+    "pileHeight": 2.163,
+    "overlapFraction": 0.6799
+  },
+  {
+    "level": 21,
+    "minimumVisibleFraction": 0.1836,
+    "grabRadius": 0.2,
+    "pileWidth": 2.953,
+    "pileHeight": 2.171,
+    "overlapFraction": 0.671
+  },
+  {
+    "level": 22,
+    "minimumVisibleFraction": 0.1222,
+    "grabRadius": 0.2,
+    "pileWidth": 2.952,
+    "pileHeight": 3.239,
+    "overlapFraction": 0.6698
+  },
+  {
+    "level": 23,
+    "minimumVisibleFraction": 0.2133,
+    "grabRadius": 0.2,
+    "pileWidth": 4.03,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.5014
+  },
+  {
+    "level": 24,
+    "minimumVisibleFraction": 0.1368,
+    "grabRadius": 0.2,
+    "pileWidth": 4.07,
+    "pileHeight": 3.433,
+    "overlapFraction": 0.5766
+  },
+  {
+    "level": 25,
+    "minimumVisibleFraction": 0.1777,
+    "grabRadius": 0.2,
+    "pileWidth": 2.018,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.6359
+  },
+  {
+    "level": 26,
+    "minimumVisibleFraction": 0.1292,
+    "grabRadius": 0.2,
+    "pileWidth": 2.456,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.6478
+  },
+  {
+    "level": 27,
+    "minimumVisibleFraction": 0.2901,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.5935
+  },
+  {
+    "level": 28,
+    "minimumVisibleFraction": 0.1299,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 4.095,
+    "overlapFraction": 0.6322
+  },
+  {
+    "level": 29,
+    "minimumVisibleFraction": 0.2432,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.5837
+  },
+  {
+    "level": 30,
+    "minimumVisibleFraction": 0.1307,
+    "grabRadius": 0.2,
+    "pileWidth": 2.81,
+    "pileHeight": 2.044,
+    "overlapFraction": 0.6849
+  },
+  {
+    "level": 31,
+    "minimumVisibleFraction": 0.153,
+    "grabRadius": 0.2,
+    "pileWidth": 2.878,
+    "pileHeight": 2.2,
+    "overlapFraction": 0.6627
+  },
+  {
+    "level": 32,
+    "minimumVisibleFraction": 0.122,
+    "grabRadius": 0.2,
+    "pileWidth": 2.939,
+    "pileHeight": 3.218,
+    "overlapFraction": 0.7078
+  },
+  {
+    "level": 33,
+    "minimumVisibleFraction": 0.1951,
+    "grabRadius": 0.2,
+    "pileWidth": 4.129,
+    "pileHeight": 2.562,
+    "overlapFraction": 0.6095
+  },
+  {
+    "level": 34,
+    "minimumVisibleFraction": 0.2094,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 3.515,
+    "overlapFraction": 0.6757
+  },
+  {
+    "level": 35,
+    "minimumVisibleFraction": 0.124,
+    "grabRadius": 0.2,
+    "pileWidth": 2.462,
+    "pileHeight": 4.019,
+    "overlapFraction": 0.7059
+  },
+  {
+    "level": 36,
+    "minimumVisibleFraction": 0.1224,
+    "grabRadius": 0.2,
+    "pileWidth": 2.545,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.682
+  },
+  {
+    "level": 37,
+    "minimumVisibleFraction": 0.1784,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 3.834,
+    "overlapFraction": 0.6501
+  },
+  {
+    "level": 38,
+    "minimumVisibleFraction": 0.1757,
+    "grabRadius": 0.2,
+    "pileWidth": 2.01,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.6379
+  },
+  {
+    "level": 39,
+    "minimumVisibleFraction": 0.18,
+    "grabRadius": 0.2,
+    "pileWidth": 4.0,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.6743
+  },
+  {
+    "level": 40,
+    "minimumVisibleFraction": 0.1767,
+    "grabRadius": 0.2,
+    "pileWidth": 2.154,
+    "pileHeight": 2.86,
+    "overlapFraction": 0.6548
+  },
+  {
+    "level": 41,
+    "minimumVisibleFraction": 0.1926,
+    "grabRadius": 0.2,
+    "pileWidth": 1.813,
+    "pileHeight": 3.45,
+    "overlapFraction": 0.6645
+  },
+  {
+    "level": 42,
+    "minimumVisibleFraction": 0.1584,
+    "grabRadius": 0.2,
+    "pileWidth": 2.587,
+    "pileHeight": 2.747,
+    "overlapFraction": 0.7116
+  },
+  {
+    "level": 43,
+    "minimumVisibleFraction": 0.133,
+    "grabRadius": 0.2,
+    "pileWidth": 4.083,
+    "pileHeight": 2.26,
+    "overlapFraction": 0.6564
+  },
+  {
+    "level": 44,
+    "minimumVisibleFraction": 0.1235,
+    "grabRadius": 0.2,
+    "pileWidth": 3.434,
+    "pileHeight": 2.597,
+    "overlapFraction": 0.6932
+  },
+  {
+    "level": 45,
+    "minimumVisibleFraction": 0.1488,
+    "grabRadius": 0.2,
+    "pileWidth": 2.078,
+    "pileHeight": 4.123,
+    "overlapFraction": 0.6506
+  },
+  {
+    "level": 46,
+    "minimumVisibleFraction": 0.1677,
+    "grabRadius": 0.2,
+    "pileWidth": 2.541,
+    "pileHeight": 4.0,
+    "overlapFraction": 0.6773
+  },
+  {
+    "level": 47,
+    "minimumVisibleFraction": 0.157,
+    "grabRadius": 0.2,
+    "pileWidth": 2.84,
+    "pileHeight": 2.709,
+    "overlapFraction": 0.6968
+  },
+  {
+    "level": 48,
+    "minimumVisibleFraction": 0.1583,
+    "grabRadius": 0.2,
+    "pileWidth": 2.275,
+    "pileHeight": 3.183,
+    "overlapFraction": 0.6937
+  },
+  {
+    "level": 49,
+    "minimumVisibleFraction": 0.1504,
+    "grabRadius": 0.2,
+    "pileWidth": 2.454,
+    "pileHeight": 3.398,
+    "overlapFraction": 0.6702
+  },
+  {
+    "level": 50,
+    "minimumVisibleFraction": 0.1747,
+    "grabRadius": 0.2,
+    "pileWidth": 2.63,
+    "pileHeight": 2.674,
+    "overlapFraction": 0.6525
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "file": "Assets/Resources/Brand/background.png",
+    "width": 948,
+    "height": 1659,
+    "mode": "RGB",
+    "bytes": 1624940
+  },
+  {
+    "file": "Assets/Resources/Brand/logo.png",
+    "width": 1835,
+    "height": 857,
+    "mode": "RGBA",
+    "bytes": 716235
+  },
+  {
+    "file": "Assets/Art/Brand/app-icon.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGB",
+    "bytes": 1139711
+  },
+  {
+    "file": "Assets/Art/Brand/mosaic-emblem.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "bytes": 1005899
+  },
+  {
+    "file": "Assets/Art/Brand/promo-sailboat.png",
+    "width": 1659,
+    "height": 948,
+    "mode": "RGB",
+    "bytes": 1549292
+  },
+  {
+    "file": "Assets/Resources/Brand/background-mint.png",
+    "width": 941,
+    "height": 1672,
+    "mode": "RGB",
+    "bytes": 1851219
+  },
+  {
+    "file": "Assets/Resources/Brand/background-apricot.png",
+    "width": 941,
+    "height": 1672,
+    "mode": "RGB",
+    "bytes": 1786942
+  },
+  {
+    "file": "Assets/Resources/Brand/background-lavender.png",
+    "width": 941,
+    "height": 1672,
+    "mode": "RGB",
+    "bytes": 1626680
+  }
+]
